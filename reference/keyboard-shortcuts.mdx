@@ -1,7 +1,7 @@
 ---
 title: "Keyboard Shortcuts and Accessibility Features"
 sidebarTitle: "Keyboard Shortcuts"
-description: "Keyboard shortcuts, form navigation tips, and accessibility features available in the Amvel Warehouse browser application."
+description: "Keyboard shortcuts, form navigation, and accessibility notes for Amvel Warehouse: tab order, autocomplete fields, sidebar toggle, and the QR scan modal."
 ---
 
 The Amvel Warehouse interface is built with standard HTML form controls and Bootstrap Icons, making it fully compatible with native browser accessibility tools and keyboard navigation. All interactive elements — inputs, selects, buttons, and links — are standard HTML elements that receive keyboard focus in the normal browser tab order. No custom keyboard shortcut library is used.
@@ -32,12 +32,15 @@ Several fields display suggestion dropdowns as you type. These include **Receive
 
 When a suggestion list is visible:
 
-| Key / Action | Result |
-|--------------|--------|
+| Action | Result |
+|--------|--------|
 | Type characters | Filters the suggestion list in real time |
-| `↑` / `↓` Arrow keys | Moves highlight up or down through the suggestion list |
-| `Enter` or mouse click | Selects the highlighted suggestion and closes the list |
-| `Escape` or blur (click away) | Closes the suggestion list without selecting |
+| Mouse click on a suggestion | Selects the suggestion and closes the list |
+| Click outside the suggestion list | Closes the list without selecting |
+
+<Note>
+  The autocomplete suggestion lists do not support keyboard navigation (Arrow keys, Enter to select). Suggestions must be chosen with a mouse click or a tap on touch devices.
+</Note>
 
 For **Plate No.**, selecting a suggestion also auto-fills the **Trucker** field with the matching trucking company name from the built-in reference table.
 

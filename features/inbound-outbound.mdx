@@ -1,5 +1,5 @@
 ---
-title: "Receive and Release Cargo: Inbound & Outbound"
+title: "Inbound & Outbound: Receive and Release Cargo Forms"
 sidebarTitle: "Inbound & Outbound"
 description: "Step-by-step guide to receiving cargo (Inbound) and releasing cargo (Outbound) in Amvel Warehouse, including QR scan, plate autocomplete, and form fields."
 ---
@@ -77,17 +77,13 @@ Every form on the Inbound & Outbound page includes an inline **QR scan button** 
   "mawb": "SPSF-26A-030",
   "invoice": "INV-2026-001",
   "transactionType": "AFF Import",
-  "date": "2026-07-15",
-  "time": "09:30",
   "plateNo": "NBD-3792",
-  "trucker": "EGAY",
-  "driver": "Ramon Santos",
-  "cargoCondition": "GOOD",
-  "location": "RACK A AA1A",
-  "quantity": "12",
-  "unit": "CTN"
+  "date": "2026-07-15",
+  "time": "09:30"
 }
 ```
+
+`normalizeShipmentPayload()` reads only the nine keys shown above (`client`, `destination`, `hawb`, `mawb`, `invoice`, `transactionType`, `plateNo`, `date`, `time`). Fields such as `trucker`, `driver`, `cargoCondition`, `location`, `quantity`, and `unit` are not extracted from the QR payload — those fields must be completed manually or via the plate-number autocomplete after scanning.
 
 **Plain-text payload** — If the scanned content is not JSON (e.g. a simple HAWB string like `YPH-04800983`), the system treats it as a HAWB or MAWB search and highlights the matching record in the inventory.
 
@@ -142,7 +138,7 @@ This prevents data-entry errors when processing a release for a shipment that wa
     Navigate to **Inbound & Outbound** from the sidebar. The **Inbound (Receive Cargo)** tab is active by default.
   </Step>
   <Step title="Scan or enter the HAWB">
-    Click the QR scan button next to the **HAWB Number** field and point the camera at the shipment label. If the label encodes a JSON payload, all fields are populated automatically. Otherwise, type the HAWB manually.
+    Click the QR scan button next to the **HAWB Number** field and point the camera at the shipment label. If the label encodes a JSON payload, the shipment identification fields (Client, Destination, HAWB, MAWB, Invoice, Transaction Type, Plate No., Date, Time) are populated automatically. Otherwise, type the HAWB manually.
   </Step>
   <Step title="Fill in shipment information">
     Confirm or enter the **Client**, **Destination**, **MAWB**, **Invoice / Markings**, and **Transaction Type** (e.g. `AFF Import`).
@@ -151,7 +147,7 @@ This prevents data-entry errors when processing a release for a shipment that wa
     Set **Date** and **Time** to match the actual arrival. Type the **Plate No.** — the **Trucker** field fills automatically. Enter the **Driver** name and select the **Cargo Condition** from the autocomplete list (e.g. `GOOD`).
   </Step>
   <Step title="Set the warehouse location">
-    Click into the **Warehouse Location** field and start typing a rack letter (e.g. `A`) to filter suggestions. Select the correct slot, for example `RACK A AA1A`.
+    Click into the **Warehouse Location** field and start typing a rack letter (e.g. `A`) to filter suggestions. Select the correct slot, for example `RACK A A1A`.
   </Step>
   <Step title="Enter quantity">
     Type the **Quantity** number and select the **Unit** (e.g. `12` and `CTN`). Click **+ Add Another Quantity** if the shipment contains multiple commodity types.

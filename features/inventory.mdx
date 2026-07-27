@@ -1,7 +1,7 @@
 ---
 title: "Inventory: Search, Filter, and Export Warehouse Stock"
 sidebarTitle: "Inventory"
-description: "The Inventory page in Amvel Warehouse lists all cargo currently in the warehouse. Learn to filter by date, transaction type, and location, and export records."
+description: "The Inventory page lists all cargo tracked in the warehouse. Learn to search by HAWB or client, filter by location and transaction type, and sort records."
 ---
 
 The **Inventory** page is the authoritative list of all cargo currently tracked in the warehouse. Every time an inbound shipment is saved on the Inbound & Outbound page, a corresponding record appears here immediately. Shipments are grouped by their HAWB or MAWB reference so that multiple inbound deliveries and partial outbound releases for the same cargo are consolidated into a single inventory row showing a running **Remaining Quantity**.
@@ -18,7 +18,7 @@ The inventory table displays the following columns for each aggregated shipment 
 | **HAWB**             | House Air Waybill number used to identify the shipment.                                               |
 | **MAWB**             | Master Air Waybill number.                                                                            |
 | **Transaction Type** | One of `AFF Import`, `AFF Export`, `OFF Import`, or `OFF Export`.                                    |
-| **Location**         | Warehouse rack address where the cargo is stored (e.g. `RACK A AA1A`).                               |
+| **Location**         | Warehouse rack address where the cargo is stored (e.g. `RACK A A1A`).                                |
 | **Qty In**           | Total quantity received across all inbound entries for this reference (number + unit).                |
 | **Qty Out**          | Total quantity released across all outbound entries for this reference.                               |
 | **Remaining Qty**    | Calculated as **Qty In − Qty Out**. The primary stock-on-hand figure.                                 |
@@ -48,7 +48,7 @@ Results narrow with every keystroke — no submit button is required.
 
 Click the **Filters** toggle button to expand the `inventoryFilterPanel`. The panel offers three independent filters:
 
-**Warehouse Location** — A free-text field with autocomplete. Begin typing a rack letter (`A`–`D`) or row code to narrow to a specific storage zone. All valid rack addresses are suggested (e.g. `RACK A AA1A`, `RACK B CB6C`).
+**Warehouse Location** — A free-text field with autocomplete. Begin typing a rack letter (`A`–`D`) or row code to narrow to a specific storage zone. All valid rack addresses are suggested (e.g. `RACK A A1A`, `RACK B C6C`).
 
 **Transaction Type** — A free-text field with autocomplete suggestions:
 
@@ -111,12 +111,12 @@ RACK {A|B|C|D} {row}{col}{row}
 
 **Examples:**
 
-| Location    | Meaning                                      |
-| ----------- | -------------------------------------------- |
-| `RACK A AA1A` | Rack A, Row A, Column 1                   |
-| `RACK B CB6C` | Rack B, Row C, Column 6                   |
-| `RACK C DF14F` | Rack C, Row F, Column 14 (end of rack)   |
-| `RACK D BA3B` | Rack D, Row B, Column 3                   |
+| Location      | Meaning                                      |
+| ------------- | -------------------------------------------- |
+| `RACK A A1A`  | Rack A, Row A, Column 1                      |
+| `RACK B C6C`  | Rack B, Row C, Column 6                      |
+| `RACK C F14F` | Rack C, Row F, Column 14 (end of rack)       |
+| `RACK D B3B`  | Rack D, Row B, Column 3                      |
 
 The autocomplete on the **Warehouse Location** field generates all valid combinations automatically, so you can type just the rack letter or row code and select from the list rather than memorising the full pattern.
 

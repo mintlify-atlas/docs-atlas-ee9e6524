@@ -1,7 +1,7 @@
 ---
-title: "User Management: Create and Manage Staff Accounts"
+title: "User Management: Create and Manage Warehouse Accounts"
 sidebarTitle: "User Management"
-description: "Admin-only guide to creating, editing, deactivating, and resetting passwords for warehouse staff accounts in Amvel Warehouse."
+description: "Admin-only guide to creating, editing, deactivating, and resetting passwords for warehouse staff accounts in the Amvel Warehouse system."
 ---
 
 User Management is an admin-exclusive area of Amvel Warehouse that lists every staff account registered in the system along with each account's current status. From this single page, administrators can perform all account operations — creating new staff accounts, editing existing records, resetting forgotten passwords, toggling active/inactive status, and permanently deleting accounts. To open it, click your name in the top-right corner of any page to open the user dropdown menu, then select **User Management**.
@@ -72,6 +72,7 @@ The following fields can be changed:
 
 - Full Name
 - Username (`userId`)
+- Password
 - Role (`admin` / `employee`)
 - Status (`active` / `inactive`)
 
@@ -87,7 +88,7 @@ The following fields can be changed:
 
 An admin can reset any account's password back to the system default. Click the **Reset Password** action on a user's row. The system calls `AuthService.resetPassword(userId)` and sets the account's password to:
 
-```
+```text
 Password123
 ```
 

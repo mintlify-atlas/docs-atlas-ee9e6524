@@ -1,30 +1,38 @@
 ---
-title: "Manage Your Profile and Change Your Password"
+title: "Edit Your Profile and Change Your Password in Amvel"
 sidebarTitle: "Profile"
-description: "How to view your account details and change your password in Amvel Warehouse using the Profile page, accessible to all logged-in users."
+description: "How to view your account details, edit your display information, and change your password in Amvel Warehouse using the Profile page."
 ---
 
-Every logged-in user — regardless of role — can access their own profile page. Click your name in the top-right corner of any page to open the user dropdown menu, then select **Profile**. The profile page is split into two tabs: **Profile Information**, which displays a read-only summary of your account, and **Change Password**, which lets you update your login password at any time.
+Every logged-in user — regardless of role — can access their own profile page. Click your name in the top-right corner of any page to open the user dropdown menu, then select **Profile**. The profile page is split into two tabs: **Profile Information**, which displays your account details and lets you edit certain fields, and **Change Password**, which lets you update your login password at any time.
 
 ---
 
 ## Profile Information Tab
 
-The **Profile Information** tab shows the details stored against your account. All fields on this tab are read-only for the account holder.
+The **Profile Information** tab shows the details stored against your account.
 
-| Field | Description |
-|---|---|
-| **Employee ID** | Your unique employee identifier (e.g. `EMP-001`) |
-| **Full Name** | Your display name shown throughout the application |
-| **Username** | The `userId` you use to log in |
-| **Role** | Your assigned role: `admin` or `employee` |
-| **Position** | Your job position (e.g. `Warehouseman` or `Administrator`) |
-| **Status** | Whether your account is `active` or `inactive` |
-| **Last Login** | Timestamp of your most recent successful login |
-| **Date Created** | The date and time your account was first created |
+| Field | Editable | Description |
+|---|:---:|---|
+| **Employee ID** | ✗ | Your unique employee identifier (e.g. `EMP-001`) |
+| **Full Name** | ✓ | Your display name shown throughout the application |
+| **Username** | ✓ | The `userId` you use to log in |
+| **Email** | ✓ | Your contact email address |
+| **Role** | ✗ | Your assigned role: `admin` or `employee` |
+| **Status** | ✗ | Whether your account is `active` or `inactive` |
+| **Last Login** | ✗ | Timestamp of your most recent successful login |
+| **Date Created** | ✗ | The date and time your account was first created |
+
+### Editing Your Profile
+
+Click the **Edit Profile** button to switch the editable fields — Full Name, Username, and Email — into input mode. Make your changes and click **Save Changes** to apply them. Click **Cancel** at any time to discard changes and return to read-only view.
 
 <Note>
-  Profile Information is read-only from this page. If any of your account details need to be corrected — such as your name or username — an admin must update them via **User Management**. Employees cannot edit other users' account data.
+  Profile edits (Full Name, Username, Email) are saved to the browser's `localStorage` under the key `warehouseProfile` as a display supplement. Changes to your **login credentials** — including your auth username and role — can only be made by an admin via the **User Management** page.
+</Note>
+
+<Note>
+  Employee ID, Role, Status, Last Login, and Date Created are always read-only from this page. If your Employee ID or role needs to be corrected, an admin must update it via **User Management**.
 </Note>
 
 ---
@@ -73,6 +81,9 @@ Example responses:
 
 // Failure — one or more fields left empty
 { success: false, message: 'Please complete all password fields.' }
+
+// Failure — no active session
+{ success: false, message: 'Please log in to change your password.' }
 ```
 
 ### Validation Rules
@@ -82,6 +93,7 @@ The following rules are enforced before the password is updated:
 - All three fields (**Current Password**, **New Password**, **Confirm Password**) are required. Leaving any field empty returns an error.
 - The value entered in **Current Password** must exactly match the password currently stored for your account.
 - The value entered in **New Password** and **Confirm Password** must be identical.
+- An active login session is required; if the session is missing the call returns immediately with an error.
 
 <Tip>
   After an admin resets your password to the default `Password123` via User Management, log in with that temporary password and then change it immediately on this page. Using the default password for any length of time is a security risk.

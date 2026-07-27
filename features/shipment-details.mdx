@@ -1,5 +1,5 @@
 ---
-title: "Shipment Details: View Full Cargo Record"
+title: "Shipment Details: View All Fields for a Cargo Record"
 sidebarTitle: "Shipment Details"
 description: "The Shipment Details page shows all stored fields for a single cargo record in Amvel Warehouse, including client, location, trucker, and condition history."
 ---
@@ -48,10 +48,9 @@ Storage details assigned during receiving:
 
 | Field              | Description                                                              |
 | ------------------ | ------------------------------------------------------------------------ |
-| **Location**       | Rack address where the cargo is stored (e.g. `RACK A AA1A`).            |
+| **Location**       | Rack address where the cargo is stored (e.g. `RACK A A1A`).             |
 | **Cargo Handling** | Resolved handling status derived by comparing the inbound and outbound cargo conditions. Shows `GOOD` when both match, or `FOR CHECKING` when they differ. |
 | **Status**         | Current shipment status (e.g. `WAITING FOR CONFIRMATION`, `RELEASED`, `RECEIVED`). |
-| **Partial / Full** | Indicates whether the shipment has been fully or only partially released. |
 
 ### Quantity Information
 
@@ -76,5 +75,5 @@ The full application sidebar remains visible on the Shipment Details page, provi
 To go back to the page you came from, use the browser's back button or click **Inventory** in the sidebar to return to the stock list. The inventory table will re-open at the same position as before.
 
 <Info>
-  When the Shipment Details page is reached via the **Inventory drawer**, the drawer panel opens inline on the Inventory page rather than navigating to a separate URL. The standalone Shipment Details page (`shipment-details.html`) is a full-page equivalent showing the same information layout.
+  When the Shipment Details page is reached via the **Inventory drawer**, the drawer panel opens inline on the Inventory page rather than navigating to a separate URL. The drawer additionally shows **Trucker**, **Partial / Full**, and a full **Release Information** section (latest release date, time, plate, driver, and remarks) that are not present on the standalone `shipment-details.html` page.
 </Info>

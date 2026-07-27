@@ -57,7 +57,7 @@ const guardPageAccess = () => {
 };
 ```
 
-`isProtectedPage` is `true` when the URL path contains `/pages/`. `isAdminRoute` is `true` when the path matches the pattern `/admin|/settings|user-management/` (case-insensitive). The practical effect is:
+`isProtectedPage` is `true` when the URL path contains `/pages/`. `isAdminRoute` is `true` when the path matches the pattern `/\/admin|\/settings|user-management/i` (case-insensitive). The practical effect is:
 
 - Any unauthenticated browser that tries to open a page under `/pages/` is immediately bounced to `index.html`.
 - Any authenticated employee who tries to open `user-management.html` is silently redirected to `dashboard.html` instead.
@@ -276,7 +276,7 @@ const result = AuthService.resetPassword('emp001');
 
 ### `AuthService.toggleUserStatus(userId)`
 
-Switches the account's `status` between `'active'` and `'inactive'`. **Admin only**. An inactive account cannot log in — `authenticateUser` will fail for accounts with `status === 'inactive'` as they will not pass credential validation.
+Switches the account's `status` between `'active'` and `'inactive'`. **Admin only**. The `status` field is informational and is used for display purposes in the User Management table; `authenticateUser` does not enforce a status check, so toggling status does not block a user from logging in at the authentication layer.
 
 **Parameters**
 

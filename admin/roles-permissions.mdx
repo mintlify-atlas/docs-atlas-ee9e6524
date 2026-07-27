@@ -1,7 +1,7 @@
 ---
-title: "Roles and Permissions in Amvel Warehouse"
+title: "Admin and Employee Roles and Permissions Explained"
 sidebarTitle: "Roles & Permissions"
-description: "How the two user roles — Admin and Employee — differ in Amvel Warehouse, and how route guards enforce access at page load."
+description: "How the Admin and Employee roles differ in Amvel Warehouse, and how the route guard in app.js enforces page-level access at load time."
 ---
 
 Amvel Warehouse uses two roles: `admin` and `employee`. A user's role is assigned when their account is created and is stored inside the session object after a successful login. On every protected page load, the application reads the active session and checks the role to decide whether to grant or deny access. There is no guest access — all pages under `/pages/` require an authenticated session.
@@ -33,9 +33,9 @@ Every page inside the `/pages/` directory calls `guardPageAccess()` from `assets
 
 1. **Authentication check** — `AuthService.isAuthenticated()` looks for a valid session in `localStorage`. If no session is found and the current URL path contains `/pages/`, the browser is redirected to `../index.html` (the login screen).
 
-2. **Admin-only route check** — If the current URL path matches the pattern `/\/admin|\/settings|user-management/i`, the function additionally verifies that `AuthService.getCurrentUser().role === 'admin'`. If the logged-in user is not an admin, the browser is redirected to `dashboard.html`.
+2. **Admin-only route check** — If the current URL path matches the regex `/\/admin|\/settings|user-management/i`, the function additionally verifies that `AuthService.getCurrentUser().role === 'admin'`. If the logged-in user is not an admin, the browser is redirected to `dashboard.html`.
 
-3. **Nav link visibility** — Elements with the CSS class `admin-only-nav` (such as the **User Management** dropdown link) are shown only when `isAdminUser()` returns `true`. Employee sessions leave those elements hidden.
+In addition to the two `guardPageAccess()` checks, nav link visibility is also role-aware: elements with the CSS class `admin-only-nav` (such as the **User Management** dropdown link) are shown only when `isAdminUser()` returns `true`. Employee sessions leave those elements hidden.
 
 ```js
 const isProtectedPage = window.location.pathname.includes('/pages/');
@@ -66,7 +66,7 @@ const guardPageAccess = () => {
 ```
 
 <Note>
-  The `isAdminRoute` regex used in `guardPageAccess` is `/\/admin|\/settings|user-management/i`. Any page whose URL path contains one of these patterns — `/admin`, `/settings`, or `user-management` — is treated as an admin-only route and requires the `admin` role to access.
+  The `isAdminRoute` regex is `/\/admin|\/settings|user-management/i`. Any page whose URL path contains `/admin`, `/settings`, or `user-management` is treated as an admin-only route and requires the `admin` role to access.
 </Note>
 
 ---
