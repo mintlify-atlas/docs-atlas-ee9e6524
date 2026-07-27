@@ -1,47 +1,112 @@
 ---
-title: "Quickstart"
-description: "Begin with a guide on the fastest path to a successful outcome"
+title: "Get Started with Amvel Warehouse in 5 Minutes"
+sidebarTitle: "Quickstart"
+description: "Set up the Amvel Warehouse system and process your first inbound shipment. Covers opening the app, logging in, and saving a cargo record."
 ---
 
-Describe how someone begins using your product. What is the first thing they need to do? Are there any prerequisites?
-
-A quickstart should take someone from zero to using your product. They'll get a quick win and a sense of what they can accomplish.
-
-## Prerequisites
-
-Before you begin, you must have:
-
-- Requirement one (for example, Node.js 18+, a free account, an API key)
-- Requirement two (for example, a compatible device, a compatible browser, a compatible operating system)
-
-## Get started
+By the end of this guide you will have opened Amvel Warehouse in a browser, signed in with an out-of-the-box account, explored the dashboard KPIs, saved a complete inbound shipment record, and confirmed that the record appears in Inventory. No installation, server, or database is needed — every step runs entirely in the browser.
 
 <Steps>
-  <Step title="Install">
-    Describe how to install your product or sign up.
+
+  <Step title="Open the application">
+    Navigate to the project root and open `index.html` in any modern browser (Chrome, Edge, Firefox, or Safari). You can open it directly from the file system using a `file://` URL, or serve the folder from a local HTTP server.
 
     ```bash
-    npm install your-package
-    ```
-  </Step>
-  <Step title="Configure">
-    Describe any setup or configuration needed before first use.
+    # Option A — open directly (works in most browsers)
+    open index.html
 
-    ```bash
-    your-cli init
+    # Option B — serve from a local HTTP server (recommended for full feature support)
+    npx serve .
+    # Then visit http://localhost:3000 in your browser
     ```
-  </Step>
-  <Step title="Run it">
-    Show the first thing a user does to see it working.
 
-    ```bash
-    your-cli start
-    ```
+    The Amvel Warehouse login page will appear. No network connection is required after the page loads.
   </Step>
+
+  <Step title="Sign in">
+    Use one of the two default accounts that are seeded into the system on first load.
+
+    | Role | User ID | Password |
+    |---|---|---|
+    | Admin | `admin001` | `Admin@123` |
+    | Employee | `emp001` | `Employee@123` |
+
+    Enter the **User ID** and **Password** in the login form and click **Sign In**. On success, the browser will redirect automatically to `pages/dashboard.html`.
+
+    <Warning>
+      These are seeded default credentials that are stored in plaintext in browser `localStorage`. Change passwords immediately after your first login. Admins can reset any password from the User Management page; all users can change their own password from the Profile page.
+    </Warning>
+  </Step>
+
+  <Step title="Explore the Dashboard">
+    After login you land on the Dashboard. At the top of the page you will see three KPI cards, each updated in real time from the shipment records stored in `localStorage`:
+
+    | Card | What it shows |
+    |---|---|
+    | **Total Shipments** | The total count of unique shipment references (aggregated by HAWB or MAWB) stored in the system |
+    | **Cargo in Warehouse** | The sum of remaining quantity across all shipment references (inbound quantity minus outbound quantity) |
+    | **Outgoing Today** | The count of shipment references that have at least one outbound entry dated today |
+
+    Clicking any KPI card filters the Recent Shipments table below to the matching subset of records.
+
+    Below the KPI cards is the **Activity Report** — a paginated, filterable, and exportable table showing every shipment reference with its date in, quantity in, date out, and quantity out. Use the **Filters** button to narrow by date range, transaction type, or warehouse location.
+  </Step>
+
+  <Step title="Receive your first shipment (Inbound)">
+    In the left-hand sidebar, click **Inbound & Outbound**. The page opens on the **Inbound** tab by default.
+
+    Fill in all required fields in the form:
+
+    | Field | Notes |
+    |---|---|
+    | **Client** | Name of the client or consignee (e.g. `YAZAKI`) |
+    | **Destination** | Delivery destination (e.g. `Manila`) |
+    | **HAWB** | House Air Waybill number (e.g. `YPH-04800983`) |
+    | **MAWB** | Master Air Waybill number (e.g. `SPSF-26A-030`) |
+    | **Plate No** | Vehicle plate number — start typing and the field will autocomplete from the built-in trucker reference list, automatically filling the **Trucker** field |
+    | **Date** | Date the cargo was received |
+    | **Time** | Time the cargo was received |
+    | **Received By** | Name of the warehouse staff member who received the shipment |
+    | **Cargo Condition** | Condition of the cargo on arrival (e.g. `GOOD`, `MINOR DENT`) |
+    | **Location** | Warehouse rack location (e.g. `RACK A A1A`) — supports autocomplete |
+    | **Quantity** | Number of units received |
+    | **Unit** | Unit of measure (e.g. `CTN`, `PLT`, `CRT`) |
+
+    When all fields are complete, click **Save**. A confirmation toast will appear at the bottom-right of the screen.
+
+    <Note>
+      The HAWB field is the primary grouping key. Subsequent outbound entries with the same HAWB will be aggregated against this inbound record in both the Activity Report and Inventory views.
+    </Note>
+  </Step>
+
+  <Step title="Check Inventory">
+    Click **Inventory** in the left-hand sidebar. The record you just saved will appear as a row in the inventory table. The row shows:
+
+    - The client name, HAWB, MAWB, and destination
+    - **Qty In** — the quantity you entered in the Inbound form
+    - **Qty Out** — `0` (no outbound has been recorded yet)
+    - **Remaining** — equal to Qty In
+    - **Status** — `RECEIVED`
+    - **Location** — the rack location you entered
+
+    You can search by HAWB, MAWB, or client name using the search bar, and export the full table as an Excel file or PDF using the toolbar buttons.
+  </Step>
+
 </Steps>
 
-<Tip>
-  Give people a way to get help. This could be a link to a support page, a chat with a customer support agent, or a forum for your product.
+## What's Next
 
-  Example: Need help? Reach out to us at [support@yourcompany.com](mailto:support@yourcompany.com).
-</Tip>
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="lock" href="/authentication">
+    Understand how sessions and role-based page guards work, and explore the complete AuthService API reference.
+  </Card>
+  <Card title="Inbound & Outbound" icon="truck" href="/features/inbound-outbound">
+    Full field reference for both the Inbound and Outbound forms, including HAWB autocomplete on outbound.
+  </Card>
+  <Card title="Inventory" icon="boxes-stacked" href="/features/inventory">
+    Learn how inbound and outbound entries are aggregated into inventory rows, and how to use filters and exports.
+  </Card>
+  <Card title="User Management" icon="users" href="/admin/user-management">
+    Create new operator accounts, assign roles, reset passwords, and activate or deactivate users (admin only).
+  </Card>
+</CardGroup>

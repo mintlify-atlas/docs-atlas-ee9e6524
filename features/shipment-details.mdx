@@ -1,0 +1,80 @@
+---
+title: "Shipment Details: View Full Cargo Record"
+sidebarTitle: "Shipment Details"
+description: "The Shipment Details page shows all stored fields for a single cargo record in Amvel Warehouse, including client, location, trucker, and condition history."
+---
+
+The **Shipment Details** page displays a read-only view of every stored field for a single cargo record. Users reach this page by clicking a shipment row in the Inventory table or the Activity Report on the Dashboard — the system resolves the shipment reference (HAWB or MAWB) and renders all accumulated data for that record in one place. The page is purely for review; no fields are editable here.
+
+<Note>
+  The Shipment Details page is **read-only**. To correct or update any field — including location, cargo condition, or trucker details — return to the [Inbound & Outbound](/features/inbound-outbound) form and save a new entry for the same HAWB or MAWB reference. The system will aggregate the new entry with the existing record.
+</Note>
+
+---
+
+## Displayed Information
+
+The page is organised into four sections, each rendered as a card panel.
+
+### Shipment Information
+
+Core identifying details for the cargo:
+
+| Field                | Description                                                              |
+| -------------------- | ------------------------------------------------------------------------ |
+| **Client**           | Name of the cargo owner or consignee.                                    |
+| **Destination**      | Final delivery location for the shipment.                                |
+| **HAWB**             | House Air Waybill number.                                                |
+| **MAWB**             | Master Air Waybill number.                                               |
+| **Invoice / Markings** | Invoice number or package markings used for identification.            |
+| **Transaction Type** | One of `AFF Import`, `AFF Export`, `OFF Import`, or `OFF Export`.        |
+
+### Receiving Information
+
+Details recorded at the time the cargo arrived in the warehouse:
+
+| Field              | Description                                                              |
+| ------------------ | ------------------------------------------------------------------------ |
+| **Date**           | Date the cargo was received (`YYYY-MM-DD`).                              |
+| **Time**           | Time of receipt (`HH:MM`).                                               |
+| **Received By**    | Warehouse staff member who accepted the cargo.                           |
+| **Plate Number**   | Vehicle plate number of the delivering truck.                            |
+| **Driver**         | Name of the truck driver who delivered the cargo.                        |
+| **Cargo Condition** | Physical state of the cargo on arrival (e.g. `GOOD`, `MINOR DENT`).    |
+
+### Warehouse Information
+
+Storage details assigned during receiving:
+
+| Field              | Description                                                              |
+| ------------------ | ------------------------------------------------------------------------ |
+| **Location**       | Rack address where the cargo is stored (e.g. `RACK A AA1A`).            |
+| **Cargo Handling** | Resolved handling status derived by comparing the inbound and outbound cargo conditions. Shows `GOOD` when both match, or `FOR CHECKING` when they differ. |
+| **Status**         | Current shipment status (e.g. `WAITING FOR CONFIRMATION`, `RELEASED`, `RECEIVED`). |
+| **Partial / Full** | Indicates whether the shipment has been fully or only partially released. |
+
+### Quantity Information
+
+Running totals for this shipment reference:
+
+| Field                  | Description                                                          |
+| ---------------------- | -------------------------------------------------------------------- |
+| **Quantity**           | The primary quantity string recorded at inbound (number + unit).     |
+| **Unit**               | Unit of measure (e.g. `CTN`, `PLT`, `PCS`).                         |
+| **Remaining Quantity** | Calculated as total Qty In minus total Qty Out.                      |
+
+---
+
+## Navigation
+
+The full application sidebar remains visible on the Shipment Details page, providing one-click access to:
+
+- **Dashboard** — return to the KPI overview and Activity Report.
+- **Inbound & Outbound** — record a new inbound receipt or outbound release.
+- **Inventory** — return to the full warehouse stock list.
+
+To go back to the page you came from, use the browser's back button or click **Inventory** in the sidebar to return to the stock list. The inventory table will re-open at the same position as before.
+
+<Info>
+  When the Shipment Details page is reached via the **Inventory drawer**, the drawer panel opens inline on the Inventory page rather than navigating to a separate URL. The standalone Shipment Details page (`shipment-details.html`) is a full-page equivalent showing the same information layout.
+</Info>

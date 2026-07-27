@@ -1,0 +1,209 @@
+---
+title: "Receive and Release Cargo: Inbound & Outbound"
+sidebarTitle: "Inbound & Outbound"
+description: "Step-by-step guide to receiving cargo (Inbound) and releasing cargo (Outbound) in Amvel Warehouse, including QR scan, plate autocomplete, and form fields."
+---
+
+The **Inbound & Outbound** page is the primary data-entry screen in Amvel Warehouse. It is divided into two tabs: **Inbound (Receive Cargo)** for recording newly arrived shipments, and **Outbound (Release Cargo)** for recording cargo that leaves the warehouse. Every entry saved here immediately updates the Inventory and Dashboard.
+
+---
+
+## Inbound — Receiving Cargo
+
+Switch to the **Inbound (Receive Cargo)** tab to log cargo that has physically arrived at the warehouse. The form is split into three panels: Shipment Information, Receiving Information, and Quantity Information.
+
+### Shipment Information
+
+| Field              | Description                                                                 |
+| ------------------ | --------------------------------------------------------------------------- |
+| **Client**         | Name of the cargo owner or consignee.                                       |
+| **Destination**    | Final delivery destination for the cargo.                                   |
+| **HAWB Number**    | House Air Waybill number. A QR scan button sits inline to scan this field.  |
+| **MAWB Number**    | Master Air Waybill number. Also has an inline QR scan button.               |
+| **Invoice / Markings** | Invoice number or package markings for identification.                  |
+| **Transaction Type** | Select one of: `AFF Import`, `AFF Export`, `OFF Import`, `OFF Export`.   |
+
+### Receiving Information
+
+| Field                  | Description                                                                               |
+| ---------------------- | ----------------------------------------------------------------------------------------- |
+| **Date**               | Date the cargo was received (date picker, `YYYY-MM-DD`).                                  |
+| **Time**               | Time of receipt (time picker, `HH:MM`).                                                   |
+| **Received By**        | Name of the warehouse staff who received the cargo. Autocomplete shows: `AIVAN`, `DAN`, `RANDY`, `JULIUS`, `JESS`, `JOBERT`, `JOSEPH`, `LORENZO`, `ROY`, `RALPH`, `ROBERTO`. |
+| **Plate No.**          | Vehicle plate number of the delivering truck. Triggers trucker autocomplete (see below).  |
+| **Trucker**            | Auto-filled from the Plate No. reference table. Can also be entered manually.             |
+| **Driver**             | Name of the truck driver.                                                                 |
+| **Cargo Condition**    | Physical condition of the cargo on arrival. See the full list of options below.           |
+| **Warehouse Location** | Rack position where the cargo is stored. Autocomplete generates all valid rack addresses. |
+
+### Quantity Information
+
+Each quantity row contains a **Quantity** (number) field and a **Unit** dropdown. The available units are:
+
+`PLT` · `CTN` · `SACK` · `PARCEL` · `BUNDLE` · `DRUM` · `PAIL` · `WOODEN CRATE` · `STEEL CRATE` · `ROLLS` · `CRATE` · `PCS` · `CASE` · `PKG`
+
+Click **+ Add Another Quantity** to record multiple commodity types within a single shipment (e.g. `5 PLT` and `20 CTN`). Each added row can be removed with the trash icon. The first row's values are used as the primary quantity for inventory calculations.
+
+---
+
+### Plate No. Autocomplete
+
+When you begin typing in the **Plate No.** field, the system searches a built-in reference table of **350+ truck plates** (`PLATE_TRUCKER_REFERENCE`) and displays matching plates in a dropdown. Selecting a suggestion:
+
+1. Fills the **Plate No.** field with the selected plate.
+2. Automatically populates the **Trucker** field with the associated trucking company name.
+
+The lookup is case-insensitive and strips spaces, so `nbd 3792`, `NBD-3792`, and `NBD3792` all produce the same match. If you type a plate that is not in the reference table, the Trucker field is not altered — you can still enter a trucker name manually.
+
+---
+
+### QR Code Scanning
+
+Every form on the Inbound & Outbound page includes an inline **QR scan button** (📷 icon) next to the HAWB and MAWB fields. Clicking any scan button opens the camera modal.
+
+**How the scanner works:**
+
+- The device camera activates and continuously scans frames using the [jsQR](https://github.com/cozmo/jsQR) library.
+- When a code is detected, scanning stops and the modal closes automatically.
+- The scanned payload is processed by `handleScannedPayload()` which calls `normalizeShipmentPayload()` internally.
+
+**JSON payload** — If the QR code contains a valid JSON object, `normalizeShipmentPayload()` maps all recognised fields into the active form:
+
+```json
+{
+  "client": "YAZAKI ORD",
+  "destination": "Clark",
+  "hawb": "YPH-04800983",
+  "mawb": "SPSF-26A-030",
+  "invoice": "INV-2026-001",
+  "transactionType": "AFF Import",
+  "date": "2026-07-15",
+  "time": "09:30",
+  "plateNo": "NBD-3792",
+  "trucker": "EGAY",
+  "driver": "Ramon Santos",
+  "cargoCondition": "GOOD",
+  "location": "RACK A AA1A",
+  "quantity": "12",
+  "unit": "CTN"
+}
+```
+
+**Plain-text payload** — If the scanned content is not JSON (e.g. a simple HAWB string like `YPH-04800983`), the system treats it as a HAWB or MAWB search and highlights the matching record in the inventory.
+
+---
+
+## Outbound — Releasing Cargo
+
+Switch to the **Outbound (Release Cargo)** tab to record cargo leaving the warehouse. The form structure mirrors the Inbound form with one key difference: the **Received By** field is replaced by **Released By**.
+
+### HAWB Autocomplete (`attachOutboundHawbAutocomplete`)
+
+The HAWB field in the Outbound tab has a live-search autocomplete that queries the current inventory:
+
+1. Type at least one character in the **HAWB Number** field.
+2. A dropdown appears showing up to 10 matching records from inventory, grouped by HAWB · Client · MAWB.
+3. Selecting a suggestion pre-fills the following fields from the stored inbound record:
+   - Client, Destination, MAWB, Invoice / Markings, Transaction Type, Warehouse Location
+   - Date and Time are set to **today's date** and **current time** automatically.
+
+This prevents data-entry errors when processing a release for a shipment that was already received.
+
+### Release Information Fields
+
+| Field                  | Description                                                                               |
+| ---------------------- | ----------------------------------------------------------------------------------------- |
+| **Client**             | Pre-filled from the inventory record when HAWB autocomplete is used.                      |
+| **Destination**        | Pre-filled from the inventory record.                                                     |
+| **HAWB Number**        | Searchable via autocomplete against live inventory.                                        |
+| **MAWB Number**        | Pre-filled, or entered manually with QR scan support.                                     |
+| **Invoice / Markings** | Pre-filled from the inventory record.                                                     |
+| **Transaction Type**   | Pre-filled (`AFF Import`, `AFF Export`, `OFF Import`, `OFF Export`).                      |
+| **Date**               | Release date (defaults to today).                                                         |
+| **Time**               | Release time (defaults to current time).                                                  |
+| **Released By**        | Name of the warehouse staff authorising the release.                                      |
+| **Plate No.**          | Plate number of the collecting truck (with trucker autocomplete).                         |
+| **Trucker**            | Auto-filled from the Plate No. reference or entered manually.                             |
+| **Driver**             | Name of the driver collecting the cargo.                                                  |
+| **Cargo Condition**    | Condition at time of release.                                                             |
+| **Warehouse Location** | Pre-filled from the stored location of the inbound record.                                |
+| **Quantity / Unit**    | Quantity being released (may be partial).                                                 |
+
+<Note>
+  Outbound records are saved to the same shipment store as inbound records. The system distinguishes them using the `entryType` field (`"inbound"` or `"outbound"`). The Inventory and Activity Report then aggregate both entry types by HAWB/MAWB to calculate **Qty In**, **Qty Out**, and **Remaining Quantity**.
+</Note>
+
+---
+
+## Worked Example: Receiving a Shipment End-to-End
+
+<Steps>
+  <Step title="Open the Inbound tab">
+    Navigate to **Inbound & Outbound** from the sidebar. The **Inbound (Receive Cargo)** tab is active by default.
+  </Step>
+  <Step title="Scan or enter the HAWB">
+    Click the QR scan button next to the **HAWB Number** field and point the camera at the shipment label. If the label encodes a JSON payload, all fields are populated automatically. Otherwise, type the HAWB manually.
+  </Step>
+  <Step title="Fill in shipment information">
+    Confirm or enter the **Client**, **Destination**, **MAWB**, **Invoice / Markings**, and **Transaction Type** (e.g. `AFF Import`).
+  </Step>
+  <Step title="Enter receiving details">
+    Set **Date** and **Time** to match the actual arrival. Type the **Plate No.** — the **Trucker** field fills automatically. Enter the **Driver** name and select the **Cargo Condition** from the autocomplete list (e.g. `GOOD`).
+  </Step>
+  <Step title="Set the warehouse location">
+    Click into the **Warehouse Location** field and start typing a rack letter (e.g. `A`) to filter suggestions. Select the correct slot, for example `RACK A AA1A`.
+  </Step>
+  <Step title="Enter quantity">
+    Type the **Quantity** number and select the **Unit** (e.g. `12` and `CTN`). Click **+ Add Another Quantity** if the shipment contains multiple commodity types.
+  </Step>
+  <Step title="Save">
+    Click **Save**. A confirmation toast appears at the bottom-right of the screen. The record is immediately visible in the **Inventory** and **Activity Report**.
+  </Step>
+</Steps>
+
+---
+
+## Cargo Condition Options
+
+<Accordion title="Full list of cargo condition values">
+  The **Cargo Condition** field offers the following autocomplete suggestions (sourced from `TEXT_FIELD_SUGGESTIONS.cargoCondition`):
+
+  - GOOD
+  - DAMAGED PALLET
+  - MINOR DENT
+  - SCRATCH ON OUTER PACKAGE BUT ACCEPTABLE
+  - SLIGHTLY DENTED BUT ACCEPTABLE
+  - WITH DENT BUT STILL ACCEPTABLE
+  - WITH HOLES
+  - WITH SCRATCHES
+  - RETURN
+  - DAMAGED PALLET BUT ACCEPTABLE
+  - TORN
+  - LOOSE STRAP
+  - WET CARTON
+  - DENTED BUT ACCEPTABLE
+  - SLIGHTLY DENTED
+  - CHIP OUT
+  - DENTED
+  - SCRATCH
+  - BROKEN PALLET BUT CARGO STILL IN GOOD CONDITION
+  - COLLAPSED PALLETS
+  - DAMAGED (FOR BO REPORT)
+  - RE-USED BOX BUT ACCEPTABLE
+  - RE-ICING
+  - TORN & DENTED BUT ACCEPTABLE
+  - WITH B.O REPORT
+  - B.O TO FOLLOW
+  - OPEN & DENTED NO B.O REPORT
+  - MINOR DENT BUT ACCEPTABLE
+  - MINOR SCRATCH
+  - PROCEED BY CS
+  - WITH TAPE
+  - RE-USED PLT
+  - RETAPE
+  - RE-USED PACKAGE BUT ACCEPTABLE
+  - SUBJECT FOR SURVEY
+  - SHOCK WATCH RED
+
+  You can also type any free-text condition not listed above.
+</Accordion>

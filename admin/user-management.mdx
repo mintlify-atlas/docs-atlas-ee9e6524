@@ -1,0 +1,141 @@
+---
+title: "User Management: Create and Manage Staff Accounts"
+sidebarTitle: "User Management"
+description: "Admin-only guide to creating, editing, deactivating, and resetting passwords for warehouse staff accounts in Amvel Warehouse."
+---
+
+User Management is an admin-exclusive area of Amvel Warehouse that lists every staff account registered in the system along with each account's current status. From this single page, administrators can perform all account operations — creating new staff accounts, editing existing records, resetting forgotten passwords, toggling active/inactive status, and permanently deleting accounts. To open it, click your name in the top-right corner of any page to open the user dropdown menu, then select **User Management**.
+
+---
+
+## Accessing User Management
+
+The **User Management** link appears in the user dropdown only when the logged-in user holds the `admin` role. The link carries the CSS class `admin-only-nav` and is shown or hidden at page load based on the current session role.
+
+If an employee account attempts to navigate directly to `user-management.html`, the route guard in `app.js` detects the non-admin session and immediately redirects to `dashboard.html`. There is no read-only view of User Management for employee accounts.
+
+---
+
+## User Table
+
+The main table lists all registered accounts. Each row contains the following columns:
+
+| Column | Description |
+|---|---|
+| **Employee ID** | Unique identifier assigned to the staff member (e.g. `EMP-001`) |
+| **Full Name** | Display name of the account holder |
+| **Username** | The login credential (`userId`) used on the sign-in screen |
+| **Role** | Either `admin` or `employee` |
+| **Status** | `active` (can log in) or `inactive` (login blocked) |
+| **Last Login** | Timestamp of the most recent successful login |
+| **Actions** | Buttons to Edit, Reset Password, Toggle Status, and Delete |
+
+You can filter the table by typing in the search box (searches Employee ID, Full Name, or Username) or by selecting a role from the **All Roles** dropdown.
+
+---
+
+## Creating a User
+
+<Steps>
+  <Step title="Open the Add User dialog">
+    Click the **Add User** button in the top-right corner of the User Management toolbar. A modal form appears.
+  </Step>
+  <Step title="Fill in all required fields">
+    Complete every field in the form:
+
+    | Field | Notes |
+    |---|---|
+    | **Employee ID** | Must be unique across all accounts |
+    | **Full Name** | The person's display name |
+    | **Username** | Must be unique; used to log in |
+    | **Password** | The account's initial password |
+    | **Confirm Password** | Must match the Password field exactly |
+    | **Role** | `admin` or `employee` |
+    | **Status** | `active` or `inactive` |
+
+    <Warning>
+      Both **Employee ID** and **Username** must be unique. Submitting a form with a duplicate value for either field returns an error and does not create the account.
+    </Warning>
+  </Step>
+  <Step title="Submit the form">
+    Click **Save** (or the equivalent submit button). On success, the new account appears immediately in the user table. The system calls `AuthService.createUser(userData)` internally and returns `{ success: true, user: { ... }, message: 'User added successfully.' }` on success.
+  </Step>
+</Steps>
+
+---
+
+## Editing a User
+
+Click the **Edit** action on any table row to open the edit form pre-filled with that account's current data.
+
+The following fields can be changed:
+
+- Full Name
+- Username (`userId`)
+- Role (`admin` / `employee`)
+- Status (`active` / `inactive`)
+
+**Employee ID cannot be changed** after an account is created. The field is locked in the edit form and preserved as-is by `AuthService.updateUser()`.
+
+<Warning>
+  An admin **cannot demote their own account** from `admin` to `employee` while they are currently logged in. Attempting to do so returns the error: _"You cannot change your own role to Employee while logged in."_
+</Warning>
+
+---
+
+## Resetting a Password
+
+An admin can reset any account's password back to the system default. Click the **Reset Password** action on a user's row. The system calls `AuthService.resetPassword(userId)` and sets the account's password to:
+
+```
+Password123
+```
+
+On success the method returns `{ success: true, message: 'Password reset successfully.' }`.
+
+<Warning>
+  The reset password `Password123` is a temporary credential. Instruct the affected user to change it immediately after their next login via **Profile → Change Password**.
+</Warning>
+
+---
+
+## Deactivating / Activating a User
+
+Click the **Toggle Status** action on a user's row to switch their account between `active` and `inactive`. The system calls `AuthService.toggleUserStatus(userId)`.
+
+- **Active → Inactive** — the account is blocked from logging in. The status badge in the table updates to `inactive`.
+- **Inactive → Active** — login access is restored. The status badge updates to `active`.
+
+The method returns `{ success: true, message: '...', status: 'active' | 'inactive' }` to reflect the resulting state.
+
+---
+
+## Deleting a User
+
+Click the **Delete** action on a user's row to permanently remove the account. This operation cannot be undone.
+
+The system calls `AuthService.deleteUser(userId)` and enforces the following constraints before proceeding:
+
+- **You cannot delete your own account.** The currently logged-in admin's account is protected. Attempting to do so returns: _"You cannot delete the currently logged-in admin account."_
+- **You cannot delete the last remaining admin account.** The system checks whether any other admin accounts exist before allowing deletion of an admin. If none remain, the operation is blocked.
+
+<Warning>
+  There must always be at least one admin account in the system. If you attempt to delete the last admin account, the system returns the error: _"You cannot delete the last remaining admin account."_ Promote another user to `admin` first before removing the current admin account.
+</Warning>
+
+---
+
+## AuthService Methods Reference
+
+The following `AuthService` methods (defined in `assets/auth.js`) power the User Management page. All operations that modify account data require an active admin session.
+
+| Method | Purpose | Admin Only |
+|---|---|---|
+| `createUser(userData)` | Creates a new staff account | ✓ |
+| `updateUser(userId, updates)` | Edits an existing account's fields | ✓ |
+| `deleteUser(userId)` | Permanently removes an account | ✓ |
+| `resetPassword(userId)` | Resets an account's password to `Password123` | ✓ |
+| `toggleUserStatus(userId)` | Switches an account between `active` and `inactive` | ✓ |
+| `getUserManagementList()` | Returns the full list of accounts for display in the table | ✗ |
+
+All methods return an object with at minimum `{ success: boolean, message: string }`. Methods that modify a specific account also return the updated `user` object in the response.

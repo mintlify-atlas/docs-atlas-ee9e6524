@@ -1,0 +1,139 @@
+---
+title: "Inventory: Search, Filter, and Export Warehouse Stock"
+sidebarTitle: "Inventory"
+description: "The Inventory page in Amvel Warehouse lists all cargo currently in the warehouse. Learn to filter by date, transaction type, and location, and export records."
+---
+
+The **Inventory** page is the authoritative list of all cargo currently tracked in the warehouse. Every time an inbound shipment is saved on the Inbound & Outbound page, a corresponding record appears here immediately. Shipments are grouped by their HAWB or MAWB reference so that multiple inbound deliveries and partial outbound releases for the same cargo are consolidated into a single inventory row showing a running **Remaining Quantity**.
+
+---
+
+## Table Columns
+
+The inventory table displays the following columns for each aggregated shipment record:
+
+| Column               | Description                                                                                           |
+| -------------------- | ----------------------------------------------------------------------------------------------------- |
+| **Client**           | Name of the cargo owner or consignee.                                                                 |
+| **HAWB**             | House Air Waybill number used to identify the shipment.                                               |
+| **MAWB**             | Master Air Waybill number.                                                                            |
+| **Transaction Type** | One of `AFF Import`, `AFF Export`, `OFF Import`, or `OFF Export`.                                    |
+| **Location**         | Warehouse rack address where the cargo is stored (e.g. `RACK A AA1A`).                               |
+| **Qty In**           | Total quantity received across all inbound entries for this reference (number + unit).                |
+| **Qty Out**          | Total quantity released across all outbound entries for this reference.                               |
+| **Remaining Qty**    | Calculated as **Qty In − Qty Out**. The primary stock-on-hand figure.                                 |
+| **Action**           | A button that opens the shipment details drawer for the selected row.                                 |
+
+Clicking any row's **Action** button (or the row itself) slides open a details drawer on the right side of the screen, showing the full shipment record without leaving the Inventory page.
+
+---
+
+## Searching
+
+The search box (`inventorySearchInput`) at the top of the toolbar filters the table in real time. It matches any partial string against:
+
+- **HAWB** number
+- **MAWB** number
+- **Client** name
+
+Results narrow with every keystroke — no submit button is required.
+
+<Tip>
+  Use the inline **QR scan button** (📷 icon) next to the search box to locate a shipment instantly without typing. Scan the QR code on a cargo label and the table jumps straight to the matching record.
+</Tip>
+
+---
+
+## Filters
+
+Click the **Filters** toggle button to expand the `inventoryFilterPanel`. The panel offers three independent filters:
+
+**Warehouse Location** — A free-text field with autocomplete. Begin typing a rack letter (`A`–`D`) or row code to narrow to a specific storage zone. All valid rack addresses are suggested (e.g. `RACK A AA1A`, `RACK B CB6C`).
+
+**Transaction Type** — A free-text field with autocomplete suggestions:
+
+- `AFF Import`
+- `AFF Export`
+- `OFF Import`
+- `OFF Export`
+
+**Sort by** — Controls the display order of rows by **Remaining Quantity**:
+
+| Option             | Sort order                            |
+| ------------------ | ------------------------------------- |
+| Remaining Quantity | Default (no explicit sort applied)    |
+| Lowest to Highest  | Ascending — items running low first   |
+| Highest to Lowest  | Descending — highest stock levels first |
+
+Click **Clear filters** at the bottom of the panel to reset all three filters simultaneously.
+
+---
+
+## Page Size Control
+
+Four buttons in the toolbar set how many rows are shown per page:
+
+| Button | Rows per page     |
+| ------ | ----------------- |
+| 5      | 5 rows            |
+| 10     | 10 rows (default) |
+| 20     | 20 rows           |
+| All    | All rows at once  |
+
+Pagination controls appear below the table when the total results exceed the selected page size.
+
+---
+
+## Exporting
+
+To export inventory data, use the export buttons available in the **Activity Report** toolbar on the Dashboard page. The same records visible in the inventory table can be exported from there as:
+
+- **Export Excel** — `.xlsx` spreadsheet (via SheetJS)
+- **Export PDF** — formatted PDF (via jsPDF + jspdf-autotable)
+- **Print** — browser print dialog
+
+Apply the same filters on the Dashboard Activity Report to export a matching subset of records.
+
+---
+
+## Location Format
+
+Warehouse locations follow a structured naming convention based on a four-rack layout:
+
+```
+RACK {A|B|C|D} {row}{col}{row}
+```
+
+- **Rack** — One of four racks: `A`, `B`, `C`, or `D`.
+- **Row** — A letter from `A` to `F` (rows within each rack section).
+- **Column** — A number from `1` to `14` (positions along the rack).
+- The row letter is repeated after the column number.
+
+**Examples:**
+
+| Location    | Meaning                                      |
+| ----------- | -------------------------------------------- |
+| `RACK A AA1A` | Rack A, Row A, Column 1                   |
+| `RACK B CB6C` | Rack B, Row C, Column 6                   |
+| `RACK C DF14F` | Rack C, Row F, Column 14 (end of rack)   |
+| `RACK D BA3B` | Rack D, Row B, Column 3                   |
+
+The autocomplete on the **Warehouse Location** field generates all valid combinations automatically, so you can type just the rack letter or row code and select from the list rather than memorising the full pattern.
+
+---
+
+## Shipment Details Drawer
+
+Clicking the **Action** button on any inventory row opens an inline drawer panel (`inventoryDrawer`) on the right side of the screen without navigating away. The drawer shows:
+
+**Shipment Information** — Client, Destination, HAWB, MAWB, Invoice / Markings, Transaction Type, Module, Flight.
+
+**Receiving Information** — Date, Time, Received By, Plate Number, Trucker, Driver, Cargo Condition.
+
+**Warehouse Information** — Location, Cargo Handling, Status, Partial / Full.
+
+**Quantity Information** — Quantity, Unit, Remaining Quantity.
+
+**Release Information** — A list of all outbound events (date, time, quantity, plate, driver, remarks) plus the latest release date, time, plate number, driver, and remarks.
+
+Close the drawer by clicking the **×** button in the drawer header or by clicking the backdrop overlay.

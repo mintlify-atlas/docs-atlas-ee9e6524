@@ -1,0 +1,88 @@
+---
+title: "Keyboard Shortcuts and Accessibility Features"
+sidebarTitle: "Keyboard Shortcuts"
+description: "Keyboard shortcuts, form navigation tips, and accessibility features available in the Amvel Warehouse browser application."
+---
+
+The Amvel Warehouse interface is built with standard HTML form controls and Bootstrap Icons, making it fully compatible with native browser accessibility tools and keyboard navigation. All interactive elements — inputs, selects, buttons, and links — are standard HTML elements that receive keyboard focus in the normal browser tab order. No custom keyboard shortcut library is used.
+
+<Note>
+  The application does not define any custom keyboard shortcuts beyond standard browser behavior. All interactions use native HTML form elements and button controls, which means platform-level accessibility tools (screen readers, high-contrast modes, browser zoom) work without special configuration.
+</Note>
+
+---
+
+## Form navigation
+
+The Inbound & Outbound form follows the standard browser tab order. Fields are laid out left-to-right, top-to-bottom across three column panels.
+
+| Key | Action |
+|-----|--------|
+| `Tab` | Move focus to the next form field or button |
+| `Shift + Tab` | Move focus to the previous form field or button |
+| `Enter` | Submit the focused form, or activate the focused button (Save, Clear, + Add Another Quantity) |
+| `Space` | Activate a focused button; toggle a focused checkbox |
+| `Arrow keys` | Navigate options within a focused `<select>` dropdown |
+
+---
+
+## Autocomplete fields
+
+Several fields display suggestion dropdowns as you type. These include **Received By**, **Released By**, **Cargo Condition**, and **Warehouse Location** (powered by `TEXT_FIELD_SUGGESTIONS`), as well as the **Plate No.** field (powered by `PLATE_TRUCKER_REFERENCE`).
+
+When a suggestion list is visible:
+
+| Key / Action | Result |
+|--------------|--------|
+| Type characters | Filters the suggestion list in real time |
+| `↑` / `↓` Arrow keys | Moves highlight up or down through the suggestion list |
+| `Enter` or mouse click | Selects the highlighted suggestion and closes the list |
+| `Escape` or blur (click away) | Closes the suggestion list without selecting |
+
+For **Plate No.**, selecting a suggestion also auto-fills the **Trucker** field with the matching trucking company name from the built-in reference table.
+
+---
+
+## Sidebar toggle
+
+The left navigation sidebar can be collapsed or expanded by clicking the hamburger toggle button (`#sidebarToggle`, rendered with the `bi-list` Bootstrap Icon) in the sidebar header.
+
+- The button is a standard `<button>` element and is reachable via `Tab` key focus.
+- Activating it with `Enter` or `Space` when focused toggles the sidebar state.
+- This is primarily a mouse or touch action; there is no dedicated keyboard shortcut to toggle it globally.
+
+---
+
+## Page size controls
+
+The Inventory and Activity Log pages include a row-count selector rendered as a button group (labeled **Rows per page**). The buttons for **5**, **10**, **20**, and **All** are standard `<button>` elements and are fully keyboard-accessible:
+
+- `Tab` to move between size buttons.
+- `Enter` or `Space` to apply the selected page size.
+
+---
+
+## Date range presets
+
+The date-range filter panel (available on the Dashboard, Activity Log, and Inventory pages) includes preset buttons such as **Today**, **Yesterday**, **Last 7 Days**, and similar. These are standard `<button>` elements:
+
+- Reachable via `Tab` navigation within the filter panel.
+- Activated with `Enter` or `Space`.
+- Selecting a preset populates the **From** and **To** date inputs and immediately refreshes the displayed data.
+
+---
+
+## Modal (QR scanner)
+
+The QR scan modal (`#scanModal`) opens when a scan trigger button is activated. While the modal is open:
+
+- The camera feed starts automatically; no additional key press is required.
+- The **Cancel** button (`.scan-close`) is a standard `<button>` that can be reached with `Tab` and activated with `Enter` or `Space`.
+- Activating Cancel (or clicking outside the modal on supported browsers) closes the modal and stops the camera stream.
+- There is no `Escape` key binding implemented for closing the modal; use the Cancel button.
+
+---
+
+<Tip>
+  Use your browser's built-in **Find on Page** (`Ctrl+F` on Windows/Linux, `Cmd+F` on macOS) to quickly locate text within any table visible on screen. This is particularly useful when reviewing a large exported or paginated activity log before exporting to Excel or PDF.
+</Tip>

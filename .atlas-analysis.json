@@ -1,0 +1,96 @@
+{
+  "projectType": "saas",
+  "projectName": "Amvel Warehouse — Yusen Logistics",
+  "projectDescription": "A browser-based warehouse management system for Yusen Logistics Philippines that tracks inbound and outbound cargo shipments, manages real-time inventory, and enforces role-based access for warehouse staff.",
+  "theme": "luma",
+  "primaryColor": "#1A56DB",
+  "lightColor": "#EFF6FF",
+  "darkColor": "#1E3A5F",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "authentication"
+            ]
+          },
+          {
+            "group": "Core Features",
+            "pages": [
+              "features/dashboard",
+              "features/inbound-outbound",
+              "features/inventory",
+              "features/shipment-details"
+            ]
+          },
+          {
+            "group": "Administration",
+            "pages": [
+              "admin/user-management",
+              "admin/roles-permissions",
+              "admin/profile"
+            ]
+          },
+          {
+            "group": "Reference",
+            "pages": [
+              "reference/data-model",
+              "reference/qr-scanning",
+              "reference/keyboard-shortcuts",
+              "reference/troubleshooting"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Inbound cargo receiving with manual form entry and QR-code scanning",
+    "Outbound cargo release with HAWB autocomplete and form pre-fill",
+    "Real-time inventory tracking with location, quantity, and condition",
+    "Activity report with date-range filters and Excel/PDF/Print export",
+    "Dashboard KPI cards: total shipments, cargo in warehouse, outgoing today",
+    "Plate number to trucker name autocomplete from a built-in reference table",
+    "Role-based access control: Admin vs Employee with session persistence",
+    "Admin-only user management: create, update, delete, reset password, toggle status",
+    "QR code camera scanner using jsQR for hands-free shipment form fill",
+    "Rack-based warehouse location picker (Rack A-D, rows A-F, columns 1-14)"
+  ],
+  "publicApiSurface": [
+    "AuthService.authenticateUser(userId, password)",
+    "AuthService.isAuthenticated()",
+    "AuthService.getCurrentUser()",
+    "AuthService.logout()",
+    "AuthService.createUser(userData)",
+    "AuthService.updateUser(userId, updates)",
+    "AuthService.deleteUser(userId)",
+    "AuthService.resetPassword(userId)",
+    "AuthService.toggleUserStatus(userId)",
+    "AuthService.changePassword(currentPassword, newPassword, confirmPassword)",
+    "AuthService.getAccounts()",
+    "AuthService.getUserManagementList()",
+    "guardPageAccess()",
+    "isAdminUser()",
+    "getCurrentRole()",
+    "getStoredShipments()",
+    "saveStoredShipments(shipments)",
+    "buildShipmentRecord(form)",
+    "validateShipmentRecord(shipment)",
+    "clearShipmentForm(form)",
+    "renderDashboardData()",
+    "getPlateSuggestions(query)",
+    "attachPlateAutocomplete(plateInput)",
+    "attachTextAutocomplete(input)",
+    "attachOutboundHawbAutocomplete(hawbInput)",
+    "startQrScanner(modal, context)",
+    "stopQrScanner(modal)",
+    "handleScannedPayload(text, modal, context)",
+    "normalizeShipmentPayload(payload)",
+    "populateShipmentForm(payload, context)"
+  ]
+}

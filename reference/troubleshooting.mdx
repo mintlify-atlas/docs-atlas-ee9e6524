@@ -1,0 +1,147 @@
+---
+title: "Troubleshooting Common Amvel Warehouse Issues"
+sidebarTitle: "Troubleshooting"
+description: "Solutions to the most common problems in Amvel Warehouse: login failures, data not saving, QR camera errors, and missing admin controls."
+---
+
+Because Amvel Warehouse stores all data in the browser's `localStorage`, most issues trace back to authentication state, storage limits, or browser permissions. Records exist only in the local browser profile of the computer where they were created — clearing browser data, using a different browser, or opening an incognito window will make previously saved data invisible. This page covers the most common problems users encounter and their step-by-step solutions.
+
+---
+
+## Common issues
+
+<Accordion title='"Invalid User ID" on login'>
+  The username entered does not match any account stored in `localStorage`.
+
+  **Possible causes:**
+  - Typo in the User ID field (the match is case-sensitive and whitespace is trimmed automatically).
+  - The account does not exist yet — it has not been created in User Management.
+  - `localStorage` was cleared, resetting the accounts array back to the two default seed accounts.
+
+  **Default seed accounts (restored on storage clear):**
+
+  | Role | User ID | Default Password |
+  |------|---------|-----------------|
+  | Administrator | `admin001` | `Admin@123` |
+  | Employee | `emp001` | `Employee@123` |
+
+  **Fix:** Verify the User ID spelling. If the account was created by an admin, ask the administrator to check the User ID in **User Management** and confirm it matches what you are typing.
+</Accordion>
+
+<Accordion title='"Incorrect password" on login'>
+  The User ID was found but the entered password does not match the stored value.
+
+  **Note:** Passwords are case-sensitive and stored exactly as entered when the account was created or last updated. A trailing space counts as part of the password.
+
+  **Fix:** Re-enter the password carefully. If you have forgotten your password, ask your warehouse administrator to reset it via **User Management → (select user) → Reset Password**. The reset sets the password to `Password123`. Change it immediately after logging in via **Profile → Change Password**.
+</Accordion>
+
+<Accordion title="Redirected to the login page immediately after loading a page">
+  The application found no valid session in `localStorage` for the current browser context.
+
+  **Possible causes:**
+  - You are not logged in, or your session expired (though sessions do not expire by time — they persist until logout or storage is cleared).
+  - `localStorage` was cleared (browser "Clear browsing data", incognito/private window, or a browser extension that wipes storage).
+  - You opened the system in a different browser or a different browser profile on the same computer — each profile has its own isolated `localStorage`.
+
+  **Fix:** Log in again using your User ID and password. Use the same browser and the same user profile that you normally use for this system.
+</Accordion>
+
+<Accordion title='"User Management" is not visible in the top-right dropdown menu'>
+  The **User Management** link is hidden for accounts with the `employee` role. It is only shown to accounts with the `admin` role (`admin-only-nav` CSS class controls visibility).
+
+  **Fix:** Log in with an admin account. If you believe you should have admin access, contact your warehouse administrator to update your account role in User Management.
+</Accordion>
+
+<Accordion title="A shipment I saved is not appearing in Inventory">
+  Shipments appear in the Inventory table only after they have been fully saved. The inventory view is derived by aggregating `warehouseShipments` — records that were not persisted will not appear.
+
+  **Possible causes:**
+  - The **Save** button was not clicked — only clearing the form or navigating away without saving discards the entry.
+  - Validation failed — the browser showed an alert ("Please complete the required shipment fields.") and the record was not saved.
+
+  **Required fields that must be filled before saving:**
+  `client`, `destination`, `hawb`, `mawb`, `transactionType`, `date`, `time`, `quantity`, `unit`, `location`
+
+  **Fix:** Return to the Inbound & Outbound form, re-enter the shipment details, ensure all required fields above are filled, and click **Save**.
+</Accordion>
+
+<Accordion title='QR scan shows "Unable to access camera"'>
+  The browser was denied camera access when `navigator.mediaDevices.getUserMedia` was called.
+
+  **Possible causes:**
+  - Camera permission was denied at the browser prompt.
+  - The page is not served over HTTPS or localhost — browsers block camera access on plain HTTP origins.
+  - On a mobile device, the operating system's app-level camera permission for the browser has been revoked.
+
+  **Fix:**
+  1. Click the lock or info icon in the browser's address bar.
+  2. Open **Site settings** → **Camera** → set to **Allow**.
+  3. Reload the page and try again.
+  4. On mobile (Android/iOS), also check **System Settings → Apps → [Browser] → Permissions → Camera** and enable it.
+</Accordion>
+
+<Accordion title='QR scan shows "Invalid QR Code" after scanning'>
+  The scanner decoded a QR code successfully, but the content could not be interpreted.
+
+  `handleScannedPayload()` first attempts `JSON.parse()`. If that fails, it treats the content as a plain-text search value. The "Invalid QR Code" alert is shown only when:
+  - The content is not valid JSON **and**
+  - The current page has no search input (`#inventorySearchInput` / `#activitySearchInput`) to receive a plain-text value (i.e. you are on the Inbound & Outbound form).
+
+  **Fix:** Verify that the QR code was generated using the JSON payload format documented in the [QR Scanning reference](/reference/qr-scanning). Plain-text QR codes (bare HAWB numbers) can only be used for searching on the Inventory and Dashboard pages — they cannot populate the shipment form.
+</Accordion>
+
+<Accordion title="All data has disappeared">
+  Every saved shipment and every user account (except the two seed accounts) is gone.
+
+  **Cause:** The browser's `localStorage` was cleared. This can happen through:
+  - **Clear browsing data** (Chrome/Edge: `Ctrl+Shift+Delete` → include "Cookies and site data" or "Local and session storage").
+  - Opening the system in an **incognito / private** window — private windows have a fresh, isolated storage context.
+  - A browser extension that automatically clears storage.
+  - Uninstalling and reinstalling the browser.
+
+  **Data is browser-local and is not synced to any server.** Once cleared, the data cannot be recovered unless it was previously exported.
+
+  <Warning>
+    Export your shipment records to **Excel** or **PDF** regularly using the export buttons on the Activity Log and Inventory pages. Treat those exports as your backup copies.
+  </Warning>
+</Accordion>
+
+<Accordion title="Export to Excel or PDF is not working">
+  Clicking an export button produces no download or no new window.
+
+  **Possible causes:**
+  - The browser's **pop-up blocker** is preventing a new window or tab from opening.
+  - A browser extension (e.g. an ad blocker) is intercepting the download trigger.
+
+  **Fix:**
+  1. Look for a blocked pop-up notification in the browser's address bar (usually a small icon on the right).
+  2. Click it and choose **Always allow pop-ups from this site**.
+  3. Try the export again.
+  4. If using an ad blocker or privacy extension, add the site to its allow-list and retry.
+</Accordion>
+
+<Accordion title="Plate number does not auto-fill the Trucker field">
+  After entering or selecting a plate number, the **Trucker** field remains empty.
+
+  **Cause:** The entered plate number is not present in the built-in `PLATE_TRUCKER_REFERENCE` lookup table. The auto-fill only fires when an exact match (case-insensitive, trimmed) is found in the reference data.
+
+  **Fix:** Enter the trucking company name manually in the **Trucker** field. If this plate/trucker combination is used regularly, contact your system developer to request that the entry be added to the `PLATE_TRUCKER_REFERENCE` array in `app.js`.
+</Accordion>
+
+---
+
+## Getting more help
+
+<CardGroup cols={2}>
+  <Card title="Account and access issues" icon="user">
+    Contact your **warehouse administrator**. Admins can reset passwords, re-create accounts, update roles, and check user status via the User Management page.
+  </Card>
+  <Card title="Code-level or configuration issues" icon="code">
+    Contact the **system developer**. Issues such as missing plate/trucker entries, changing seed accounts, or modifying suggestion lists require edits to the source files (`app.js`, `auth.js`).
+  </Card>
+</CardGroup>
+
+<Note>
+  Amvel Warehouse does not have a backend support service or a ticketing system. All application configuration lives in the source files (`app.js`, `auth.js`, and the HTML pages). There is no remote diagnostics capability — issues must be investigated by examining `localStorage` directly (browser DevTools → Application → Local Storage) or by reviewing the browser console for JavaScript errors.
+</Note>

@@ -1,0 +1,326 @@
+---
+title: "Authentication and Session Management in Amvel Warehouse"
+sidebarTitle: "Authentication"
+description: "How login, sessions, role-based guards, and the AuthService API work in Amvel Warehouse. Includes all public AuthService methods with parameters."
+---
+
+Amvel Warehouse uses a pure browser-side authentication model — there is no backend server involved. User credentials are persisted in `localStorage` under the key `warehouseAuthAccounts`, and the active session is stored under `warehouseAuthSession`. Both keys are managed exclusively by `AuthService`, a global object that is attached to `window` when `assets/auth.js` is loaded. Login, logout, password changes, and all user-management operations go through `AuthService` methods; no direct `localStorage` reads or writes are needed from other parts of the application.
+
+## Default Accounts
+
+Two accounts are seeded into the system the first time `auth.js` runs and `warehouseAuthAccounts` is empty. If the key already contains valid data these seed values are not applied, so they persist only until an admin overwrites them.
+
+| userId | password | role | name |
+|---|---|---|---|
+| `admin001` | `Admin@123` | `admin` | Juan Cruz |
+| `emp001` | `Employee@123` | `employee` | Joseph Dela Cruz |
+
+<Warning>
+  These default credentials are stored as plaintext strings in browser `localStorage` and are visible to anyone who opens the browser DevTools on the same machine. Change both passwords immediately after deploying the system to a shared or production device. Admins can reset any password from User Management; all users can change their own password from the Profile page.
+</Warning>
+
+## How Login Works
+
+When a user submits the login form on `index.html`, the following sequence runs:
+
+1. `login.js` reads the `userId` and `password` values from the form inputs.
+2. It calls `AuthService.authenticateUser(userId, password)`.
+3. `AuthService` looks up the account from `warehouseAuthAccounts` (or the in-memory seed if the key is absent).
+4. If the credentials match, `AuthService` writes a session object to `warehouseAuthSession` and returns `{ success: true, user }`. The `user` shape is `{ userId, role, name, employeeId, position }`.
+5. `AuthService` also updates the `lastLogin` timestamp on the matching account and persists that change back to `warehouseAuthAccounts`.
+6. `login.js` then redirects the browser to `pages/dashboard.html`.
+
+If the credentials do not match, `authenticateUser` returns `{ success: false, message }` and the error message is displayed in the `#loginError` element. No session is written.
+
+## Role Guards
+
+Every page under `pages/` calls `guardPageAccess()` at the top of the `DOMContentLoaded` handler, before rendering any content. The guard logic works as follows:
+
+```js
+const guardPageAccess = () => {
+  // 1. If the user is not authenticated at all, send them back to the login page.
+  if (typeof AuthService === 'undefined' || !AuthService.isAuthenticated?.()) {
+    if (isProtectedPage) {
+      window.location.replace('../index.html');
+    }
+    return false;
+  }
+
+  // 2. If the requested route is admin-only and the current user is not an admin,
+  //    redirect them to the dashboard instead.
+  if (isAdminRoute && AuthService.getCurrentUser?.()?.role !== 'admin') {
+    window.location.replace('dashboard.html');
+    return false;
+  }
+
+  return true;
+};
+```
+
+`isProtectedPage` is `true` when the URL path contains `/pages/`. `isAdminRoute` is `true` when the path matches the pattern `/admin|/settings|user-management/` (case-insensitive). The practical effect is:
+
+- Any unauthenticated browser that tries to open a page under `/pages/` is immediately bounced to `index.html`.
+- Any authenticated employee who tries to open `user-management.html` is silently redirected to `dashboard.html` instead.
+
+Admin-only navigation items in the sidebar and dropdown are additionally toggled by the `.admin-only-nav` CSS class, which is only set to `visible` for admin sessions, so employees never see links to admin pages.
+
+## AuthService API Reference
+
+<Note>
+  `AuthService` is a global object attached to `window` — it is available as `window.AuthService` or simply `AuthService` in any script that loads after `assets/auth.js`. You can also call it directly from the browser console for debugging.
+</Note>
+
+### `AuthService.authenticateUser(userId, password)`
+
+Validates credentials against the stored account list. On success, writes a session to `localStorage` and returns the session payload. On failure, returns a descriptive error message.
+
+**Parameters**
+
+| Name | Type | Description |
+|---|---|---|
+| `userId` | `string` | The user's login ID (trimmed before comparison) |
+| `password` | `string` | The user's plaintext password (trimmed before comparison) |
+
+**Returns** `{ success: boolean, user?: SessionObject, message?: string }`
+
+```js
+const result = AuthService.authenticateUser('admin001', 'Admin@123');
+if (result.success) {
+  console.log(result.user); // { userId, role, name, employeeId, position }
+} else {
+  console.error(result.message); // e.g. 'Invalid User ID.' or 'Incorrect password.'
+}
+```
+
+---
+
+### `AuthService.isAuthenticated()`
+
+Returns `true` if a valid session object (one with a `userId` property) is currently stored in `localStorage`, and `false` otherwise.
+
+**Returns** `boolean`
+
+```js
+if (!AuthService.isAuthenticated()) {
+  window.location.replace('../index.html');
+}
+```
+
+---
+
+### `AuthService.getCurrentUser()`
+
+Reads and returns a shallow copy of the current session object. Returns `null` if no session exists.
+
+**Returns** `{ userId: string, role: string, name: string, employeeId: string, position: string } | null`
+
+```js
+const user = AuthService.getCurrentUser();
+if (user?.role === 'admin') {
+  // show admin-only controls
+}
+```
+
+---
+
+### `AuthService.logout()`
+
+Removes the session entry from `localStorage`. Always returns `true`. After calling this, `isAuthenticated()` will return `false`.
+
+**Returns** `true`
+
+```js
+AuthService.logout();
+window.location.href = '../index.html';
+```
+
+---
+
+### `AuthService.changePassword(currentPassword, newPassword, confirmPassword)`
+
+Allows the currently logged-in user to change their own password. Requires an active session. Validates that `currentPassword` matches the stored value and that `newPassword` equals `confirmPassword`.
+
+**Parameters**
+
+| Name | Type | Description |
+|---|---|---|
+| `currentPassword` | `string` | The user's existing password |
+| `newPassword` | `string` | The desired new password |
+| `confirmPassword` | `string` | Must match `newPassword` exactly |
+
+**Returns** `{ success: boolean, message: string }`
+
+```js
+const result = AuthService.changePassword('Admin@123', 'NewPass@456', 'NewPass@456');
+console.log(result.message); // 'Password updated successfully.' or an error string
+```
+
+---
+
+### `AuthService.getAccounts()`
+
+Returns the full normalized list of all user accounts. Intended for read-only inspection; each element is a fresh copy of the stored record.
+
+**Returns** `Account[]`
+
+```js
+const accounts = AuthService.getAccounts();
+accounts.forEach(acc => console.log(acc.userId, acc.role));
+```
+
+---
+
+### `AuthService.getUserManagementList()`
+
+Returns the same list as `getAccounts()` but guarantees that every account has a `status` field set to either `'active'` or `'inactive'`. Used to populate the User Management table.
+
+**Returns** `Account[]` (with `status` always present)
+
+```js
+const list = AuthService.getUserManagementList();
+const activeUsers = list.filter(u => u.status === 'active');
+```
+
+---
+
+### `AuthService.createUser(userData)`
+
+Creates a new user account. **Admin only** — returns an error object immediately if the current session does not have `role === 'admin'`. Both `userId` and `employeeId` must be unique across all existing accounts.
+
+**Parameters** — `userData` object
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `userId` | `string` | ✅ | Must be unique |
+| `password` | `string` | ✅ | |
+| `confirmPassword` | `string` | Optional | If provided, must match `password` |
+| `name` | `string` | ✅ | |
+| `employeeId` | `string` | ✅ | Must be unique |
+| `role` | `string` | Optional | `'admin'` or `'employee'` (default: `'employee'`) |
+| `status` | `string` | Optional | `'active'` or `'inactive'` (default: `'active'`) |
+
+**Returns** `{ success: boolean, user?: Account, message: string }`
+
+```js
+const result = AuthService.createUser({
+  userId: 'emp002',
+  password: 'Temp@1234',
+  confirmPassword: 'Temp@1234',
+  name: 'Maria Santos',
+  employeeId: 'EMP-002',
+  role: 'employee'
+});
+console.log(result.message); // 'User added successfully.' or error
+```
+
+---
+
+### `AuthService.updateUser(userId, updates)`
+
+Updates the name, userId, role, status, and/or password of an existing account. **Admin only**. An admin cannot demote their own currently-logged-in account to `'employee'`, and `userId` must remain unique.
+
+**Parameters**
+
+| Name | Type | Description |
+|---|---|---|
+| `userId` | `string` | The current `userId` of the account to update |
+| `updates` | `object` | Any subset of `{ name, userId, role, status, password }` |
+
+**Returns** `{ success: boolean, user?: Account, message: string }`
+
+```js
+const result = AuthService.updateUser('emp002', { name: 'Maria R. Santos', status: 'inactive' });
+console.log(result.message); // 'User updated successfully.' or error
+```
+
+---
+
+### `AuthService.deleteUser(userId)`
+
+Permanently removes an account from `localStorage`. **Admin only**. An admin cannot delete their own currently-logged-in account, and the last remaining admin account cannot be deleted.
+
+**Parameters**
+
+| Name | Type | Description |
+|---|---|---|
+| `userId` | `string` | The `userId` of the account to delete |
+
+**Returns** `{ success: boolean, message: string }`
+
+```js
+const result = AuthService.deleteUser('emp002');
+console.log(result.message); // 'User deleted successfully.' or error
+```
+
+---
+
+### `AuthService.resetPassword(userId)`
+
+Resets the target account's password to the default value `'Password123'`. **Admin only**. Inform the user to change this password on next login.
+
+**Parameters**
+
+| Name | Type | Description |
+|---|---|---|
+| `userId` | `string` | The `userId` of the account to reset |
+
+**Returns** `{ success: boolean, message: string }`
+
+```js
+const result = AuthService.resetPassword('emp001');
+// result.message === 'Password reset successfully.'
+// The account password is now 'Password123'
+```
+
+---
+
+### `AuthService.toggleUserStatus(userId)`
+
+Switches the account's `status` between `'active'` and `'inactive'`. **Admin only**. An inactive account cannot log in — `authenticateUser` will fail for accounts with `status === 'inactive'` as they will not pass credential validation.
+
+**Parameters**
+
+| Name | Type | Description |
+|---|---|---|
+| `userId` | `string` | The `userId` of the account to toggle |
+
+**Returns** `{ success: boolean, message: string, status?: 'active' | 'inactive' }`
+
+```js
+const result = AuthService.toggleUserStatus('emp001');
+console.log(result.status);  // 'inactive' (or 'active' if it was already inactive)
+console.log(result.message); // 'User deactivated successfully.' or 'User activated successfully.'
+```
+
+---
+
+## Account Object Shape
+
+Every method that returns account data uses the following normalized structure. Fields are always strings; `null` is used only for `lastLogin` and `createdAt` when the value has never been set.
+
+| Field | Type | Values |
+|---|---|---|
+| `userId` | `string` | Unique login identifier |
+| `password` | `string` | Plaintext password (stored in `localStorage`) |
+| `role` | `string` | `'admin'` or `'employee'` |
+| `name` | `string` | Display name |
+| `employeeId` | `string` | Unique employee identifier (e.g. `'EMP-001'`) |
+| `position` | `string` | Job title (e.g. `'Warehouseman'` or `'Administrator'`) |
+| `status` | `string` | `'active'` or `'inactive'` |
+| `lastLogin` | `string \| null` | ISO 8601 timestamp of the most recent successful login, or `null` |
+| `createdAt` | `string \| null` | ISO 8601 timestamp of account creation, or `null` for seeded accounts |
+
+```js
+// Example Account object
+{
+  userId: 'emp001',
+  password: 'Employee@123',
+  role: 'employee',
+  name: 'Joseph Dela Cruz',
+  employeeId: 'EMP-001',
+  position: 'Warehouseman',
+  status: 'active',
+  lastLogin: '2025-09-15T08:42:11.000Z',
+  createdAt: '2024-01-02T00:00:00.000Z'
+}
+```

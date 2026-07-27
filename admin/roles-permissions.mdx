@@ -1,0 +1,95 @@
+---
+title: "Roles and Permissions in Amvel Warehouse"
+sidebarTitle: "Roles & Permissions"
+description: "How the two user roles — Admin and Employee — differ in Amvel Warehouse, and how route guards enforce access at page load."
+---
+
+Amvel Warehouse uses two roles: `admin` and `employee`. A user's role is assigned when their account is created and is stored inside the session object after a successful login. On every protected page load, the application reads the active session and checks the role to decide whether to grant or deny access. There is no guest access — all pages under `/pages/` require an authenticated session.
+
+---
+
+## Role Comparison
+
+The table below summarises what each role can and cannot do across the system.
+
+| Feature | Admin | Employee |
+|---|:---:|:---:|
+| View Dashboard | ✓ | ✓ |
+| Inbound & Outbound | ✓ | ✓ |
+| Inventory | ✓ | ✓ |
+| Shipment Details | ✓ | ✓ |
+| User Management | ✓ | ✗ |
+| Create / Edit / Delete Users | ✓ | ✗ |
+| Reset Passwords | ✓ | ✗ |
+| View All Accounts | ✓ | ✗ |
+| Change Own Password | ✓ | ✓ |
+| Edit Own Profile | ✓ | ✓ |
+
+---
+
+## How Route Guards Work
+
+Every page inside the `/pages/` directory calls `guardPageAccess()` from `assets/app.js` on load. The function runs two checks in sequence:
+
+1. **Authentication check** — `AuthService.isAuthenticated()` looks for a valid session in `localStorage`. If no session is found and the current URL path contains `/pages/`, the browser is redirected to `../index.html` (the login screen).
+
+2. **Admin-only route check** — If the current URL path matches the pattern `/\/admin|\/settings|user-management/i`, the function additionally verifies that `AuthService.getCurrentUser().role === 'admin'`. If the logged-in user is not an admin, the browser is redirected to `dashboard.html`.
+
+3. **Nav link visibility** — Elements with the CSS class `admin-only-nav` (such as the **User Management** dropdown link) are shown only when `isAdminUser()` returns `true`. Employee sessions leave those elements hidden.
+
+```js
+const isProtectedPage = window.location.pathname.includes('/pages/');
+const isAdminRoute = /\/admin|\/settings|user-management/i.test(window.location.pathname);
+
+const getCurrentRole = () => {
+  const currentUser = typeof AuthService !== 'undefined' ? AuthService.getCurrentUser?.() : null;
+  return currentUser?.role || 'employee';
+};
+
+const isAdminUser = () => getCurrentRole() === 'admin';
+
+const guardPageAccess = () => {
+  if (typeof AuthService === 'undefined' || !AuthService.isAuthenticated?.()) {
+    if (isProtectedPage) {
+      window.location.replace('../index.html');
+    }
+    return false;
+  }
+
+  if (isAdminRoute && AuthService.getCurrentUser?.()?.role !== 'admin') {
+    window.location.replace('dashboard.html');
+    return false;
+  }
+
+  return true;
+};
+```
+
+<Note>
+  The `isAdminRoute` regex used in `guardPageAccess` is `/\/admin|\/settings|user-management/i`. Any page whose URL path contains one of these patterns — `/admin`, `/settings`, or `user-management` — is treated as an admin-only route and requires the `admin` role to access.
+</Note>
+
+---
+
+## Session Persistence
+
+When a user logs in successfully, `AuthService.authenticateUser()` writes a session object to `localStorage` under the key `warehouseAuthSession`. The session contains:
+
+```js
+{
+  userId:     string,  // the account's username
+  role:       string,  // 'admin' or 'employee'
+  name:       string,  // display name
+  employeeId: string,  // e.g. 'EMP-001'
+  position:   string   // e.g. 'Warehouseman'
+}
+```
+
+Because the session is stored in `localStorage` rather than `sessionStorage`, **closing the browser tab does not log the user out**. The session remains active until one of the following occurs:
+
+- The user clicks **Logout**, which calls `AuthService.logout()` and removes the `warehouseAuthSession` key.
+- The browser's local storage is manually cleared.
+
+<Warning>
+  On shared or public computers, users should always click **Logout** from the user dropdown before leaving their workstation. Simply closing the tab leaves the session intact and allows the next person who opens the browser to access the account.
+</Warning>

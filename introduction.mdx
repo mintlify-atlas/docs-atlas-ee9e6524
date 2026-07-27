@@ -1,0 +1,69 @@
+---
+title: "Amvel Warehouse: What It Is and How It Works"
+sidebarTitle: "Introduction"
+description: "Amvel Warehouse is a browser-based WMS for Yusen Logistics Philippines. Learn how the system is structured and who it is designed for."
+---
+
+Amvel Warehouse is the warehouse management system (WMS) used by Yusen Logistics Philippines Inc. to track inbound and outbound cargo, manage inventory, and control access across staff roles. It runs entirely in the browser — no server installation, no desktop app, and no database setup required. Every record the system creates is stored in the browser's `localStorage`, which means any modern browser on any device can open the application by navigating to `index.html`. The system is purpose-built for the day-to-day operations of a logistics warehouse: receiving cargo off a truck, recording air waybill numbers, monitoring what is currently sitting on a rack, and releasing stock to outbound vehicles.
+
+## System Overview
+
+Amvel Warehouse is organized into four primary functional areas, each accessible from the sidebar navigation after login.
+
+| Area | Pages | Purpose |
+|---|---|---|
+| **Login / Authentication** | `index.html` | Credential entry, session creation, and redirect to the dashboard |
+| **Dashboard & Activity Report** | `pages/dashboard.html` | Live KPI cards, the recent-shipments table, and the full Activity Report with date-range and filter controls |
+| **Inbound & Outbound** | `pages/inbound-outbound.html` | Tabbed form for receiving cargo (Inbound) and releasing cargo (Outbound); supports HAWB autocomplete on the Outbound tab |
+| **Inventory** | `pages/inventory.html` | Aggregated view of every shipment reference with inbound quantity, outbound quantity, remaining stock, status badges, and location data |
+
+Admin users also have access to two additional pages reachable from the top-right user dropdown:
+
+- **User Management** (`pages/user-management.html`) — create, edit, activate/deactivate, and delete operator accounts.
+- **Profile** (`pages/profile.html`) — update display name, email, and upload a profile picture (with in-browser crop and rotate).
+
+## Who Uses This System
+
+Amvel Warehouse uses a two-role access model. Every account belongs to exactly one role.
+
+| Role | What they can do |
+|---|---|
+| **Admin** | Full access to all pages, including User Management; can create, update, reset passwords for, and delete other accounts. |
+| **Employee** | Can log in, use the Dashboard, record Inbound/Outbound shipments, and view Inventory; cannot access User Management or change other users' credentials. |
+
+## How Data Is Stored
+
+All application data is persisted in the browser's `localStorage` under three keys:
+
+| Key | Contents |
+|---|---|
+| `warehouseShipments` | Every inbound and outbound shipment record saved through the forms |
+| `warehouseAuthAccounts` | The full list of user accounts (userId, hashed password, role, status, etc.) |
+| `warehouseAuthSession` | The currently active session object written on successful login |
+
+Because the data lives in the browser, the same physical machine and the same browser profile must be used to access the same records. Two operators on two different computers will each see their own isolated storage.
+
+<Note>
+  Data is scoped to the browser in which it was saved. Clearing browser storage — through the browser's "Clear site data" or "Clear history" settings, or by calling `localStorage.clear()` from the console — will permanently remove all shipment records, accounts, and session data. Back up any critical records using the Excel or PDF export features in the Inventory and Dashboard pages before clearing storage.
+</Note>
+
+## Where to Go Next
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Open the app, log in with the default credentials, and save your first inbound shipment in five minutes.
+  </Card>
+  <Card title="Authentication" icon="lock" href="/authentication">
+    Understand how sessions work, how role guards protect pages, and how to use the full AuthService API.
+  </Card>
+  <Card title="Dashboard" icon="gauge" href="/features/dashboard">
+    Learn how the KPI cards are calculated and how to filter and export the Activity Report.
+  </Card>
+  <Card title="Inbound & Outbound" icon="truck" href="/features/inbound-outbound">
+    Field-by-field guide to recording cargo receipts and releases, including plate-number autocomplete.
+  </Card>
+</CardGroup>
+
+<Tip>
+  New to the system? The [Quickstart](/quickstart) walks you through opening the app, signing in, and recording your first shipment end-to-end in under five minutes.
+</Tip>

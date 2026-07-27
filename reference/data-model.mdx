@@ -1,0 +1,228 @@
+---
+title: "Data Model: Shipments, Inventory, and User Accounts"
+sidebarTitle: "Data Model"
+description: "Field-by-field reference for the three data structures stored by Amvel Warehouse: shipment records, inventory entries, and user accounts in localStorage."
+---
+
+All data in Amvel Warehouse is persisted in the browser's `localStorage`. There is no server-side database — every record written by the application exists only in the local browser profile of the user who created it. There are three primary data structures: shipment/activity records (created via the Inbound & Outbound form), inventory entries that are derived by aggregating those shipment records, and user account records managed through the Auth service.
+
+<Warning>
+  Passwords are stored in **plaintext** in `localStorage`. This system is intended for internal intranet use only and should not be exposed to public networks.
+</Warning>
+
+---
+
+## Storage keys
+
+The following `localStorage` keys are used by the application:
+
+| Key | Contents |
+|-----|----------|
+| `warehouseShipments` | Array of shipment/activity records (both inbound and outbound entries) |
+| `warehouseAuthAccounts` | Array of user account objects |
+| `warehouseAuthSession` | Single session object for the currently logged-in user |
+
+---
+
+## Shipment Record
+
+Shipment records are created by `buildShipmentRecord()` in `app.js` when the Save button is clicked on the Inbound & Outbound form. Each record is a plain JavaScript object pushed into the `warehouseShipments` array.
+
+The following fields are collected directly from form inputs (via `[data-field]` attributes):
+
+<ParamField body="client" type="string" required>
+  Customer or consignee name. Sourced from the **Client** text input on the form.
+</ParamField>
+
+<ParamField body="destination" type="string" required>
+  Delivery destination. Sourced from the **Destination** text input.
+</ParamField>
+
+<ParamField body="hawb" type="string" required>
+  House Air Waybill number. Sourced from the **HAWB Number** input. Used as the primary search and matching key across Inventory and Dashboard pages.
+</ParamField>
+
+<ParamField body="mawb" type="string" required>
+  Master Air Waybill number. Sourced from the **MAWB Number** input.
+</ParamField>
+
+<ParamField body="invoice" type="string">
+  Invoice number or cargo markings reference. Sourced from the **Invoice / Markings** input. Optional.
+</ParamField>
+
+<ParamField body="transactionType" type="string" required>
+  Logistics transaction classification. One of: `AFF Import`, `AFF Export`, `OFF Import`, `OFF Export`. Sourced from the **Transaction Type** select dropdown.
+</ParamField>
+
+<ParamField body="date" type="string" required>
+  Date of transaction in `YYYY-MM-DD` format. Sourced from the **Date** date input.
+</ParamField>
+
+<ParamField body="time" type="string" required>
+  Time of transaction in `HH:mm` (24-hour) format. Sourced from the **Time** time input.
+</ParamField>
+
+<ParamField body="plateNo" type="string">
+  Truck plate number. Sourced from the **Plate No.** input. Typing a known plate number triggers an auto-fill of the `trucker` field via the `PLATE_TRUCKER_REFERENCE` lookup table.
+</ParamField>
+
+<ParamField body="trucker" type="string">
+  Trucking company name. Auto-filled from the built-in `PLATE_TRUCKER_REFERENCE` table when a matching plate number is entered. Can be overridden manually.
+</ParamField>
+
+<ParamField body="driver" type="string">
+  Driver's name. Sourced from the **Driver** text input.
+</ParamField>
+
+<ParamField body="receivedBy" type="string">
+  Name of the warehouse staff member who received the cargo (inbound only). Sourced from the **Received By** input. Supports autocomplete suggestions from `TEXT_FIELD_SUGGESTIONS.receivedBy`.
+</ParamField>
+
+<ParamField body="releasedBy" type="string">
+  Name of the warehouse staff member who released the cargo (outbound only). Sourced from the **Released By** input. Supports autocomplete suggestions from `TEXT_FIELD_SUGGESTIONS.releasedBy`.
+</ParamField>
+
+<ParamField body="cargoCondition" type="string">
+  Description of the cargo's physical condition at the time of the transaction (e.g. `GOOD`, `DAMAGED PALLET`, `MINOR DENT`). Sourced from the **Cargo Condition** input. Supports autocomplete suggestions from `TEXT_FIELD_SUGGESTIONS.cargoCondition`.
+</ParamField>
+
+<ParamField body="location" type="string" required>
+  Warehouse rack location where the cargo is stored (e.g. `RACK A AA1A`). Sourced from the **Warehouse Location** input. Supports autocomplete from the generated `TEXT_FIELD_SUGGESTIONS.location` list covering Racks A–D with rows A–F and columns 1–14.
+</ParamField>
+
+The following fields are computed by `buildShipmentRecord()` rather than read directly from form inputs:
+
+<ParamField body="quantityEntries" type="array" required>
+  Array of `{ quantity: string, unit: string }` objects, one per quantity row added in the **Quantity Information** panel. Each `unit` is one of: `PLT`, `CTN`, `SACK`, `PARCEL`, `BUNDLE`, `DRUM`, `PAIL`, `WOODEN CRATE`, `STEEL CRATE`, `ROLLS`, `CRATE`, `PCS`, `CASE`, `PKG`.
+
+  ```json
+  [
+    { "quantity": "10", "unit": "CTN" },
+    { "quantity": "2",  "unit": "PLT" }
+  ]
+  ```
+</ParamField>
+
+<ParamField body="quantity" type="string" required>
+  The quantity value from the **first** quantity row. Convenience alias used by validation and display logic.
+</ParamField>
+
+<ParamField body="unit" type="string" required>
+  The unit value from the **first** quantity row. Convenience alias used by validation and display logic.
+</ParamField>
+
+<ParamField body="entryType" type="string">
+  Indicates whether the record originated from the inbound or outbound tab. Value is `'inbound'` or `'outbound'`. Set automatically based on which form was submitted.
+</ParamField>
+
+<ParamField body="qtyIn" type="string">
+  The quantity received (populated for inbound entries, empty string for outbound).
+</ParamField>
+
+<ParamField body="qtyOut" type="string">
+  The quantity released (populated for outbound entries, empty string for inbound).
+</ParamField>
+
+<ParamField body="releaseQty" type="string">
+  Release quantity; mirrors `qtyOut` for outbound records. Empty for inbound records.
+</ParamField>
+
+<ParamField body="releaseDate" type="string">
+  Release date (`YYYY-MM-DD`); mirrors `date` for outbound records. Empty for inbound records.
+</ParamField>
+
+<ParamField body="releaseTime" type="string">
+  Release time (`HH:mm`); mirrors `time` for outbound records. Empty for inbound records.
+</ParamField>
+
+<ParamField body="releasePlate" type="string">
+  Release truck plate; mirrors `plateNo` for outbound records. Empty for inbound records.
+</ParamField>
+
+<ParamField body="releaseDriver" type="string">
+  Release driver name; mirrors `driver` for outbound records. Empty for inbound records.
+</ParamField>
+
+<ParamField body="status" type="string">
+  Cargo status at save time. `'RECEIVED'` for inbound entries, `'RELEASED'` for outbound entries.
+</ParamField>
+
+<ParamField body="savedAt" type="string">
+  ISO 8601 timestamp of when the record was saved (e.g. `"2026-07-01T09:30:00.000Z"`). Generated via `new Date().toISOString()`. This field serves as the de facto unique identifier for a shipment record — records are matched and aggregated by HAWB/MAWB using this timestamp to determine ordering.
+</ParamField>
+
+### Validation
+
+`validateShipmentRecord()` checks that the following fields are non-empty before the record is saved. If any are missing, the form shows an alert and the record is not persisted:
+
+`client`, `destination`, `hawb`, `mawb`, `transactionType`, `date`, `time`, `quantity`, `unit`, `location`
+
+---
+
+## User Account
+
+User accounts are stored in the `warehouseAuthAccounts` array and normalized through `normalizeAccount()` in `auth.js`. Two seed accounts are created on first load if no accounts exist in `localStorage`.
+
+<ParamField body="userId" type="string" required>
+  Login username. Used as the primary identifier for authentication. Case-sensitive at login. Default seed values: `admin001` (admin) and `emp001` (employee).
+</ParamField>
+
+<ParamField body="password" type="string" required>
+  Account password stored as plaintext. Default seed values: `Admin@123` (admin) and `Employee@123` (employee). An admin can reset any user's password to `Password123` via User Management → Reset Password.
+</ParamField>
+
+<ParamField body="role" type="string" required>
+  User role. One of: `'admin'` or `'employee'`. Admins have access to User Management; employees do not. Stored in lowercase.
+</ParamField>
+
+<ParamField body="name" type="string" required>
+  Full display name of the user (e.g. `'Juan Cruz'`). Shown in the topbar and profile page.
+</ParamField>
+
+<ParamField body="employeeId" type="string" required>
+  Unique employee identifier (e.g. `'ADM-001'`, `'EMP-001'`). Must be unique across all accounts. Cannot be changed after creation.
+</ParamField>
+
+<ParamField body="position" type="string">
+  Job title. Defaults to `'Administrator'` when `role` is `'admin'`, or `'Warehouseman'` when `role` is `'employee'`. Can be customized when creating or updating a user.
+</ParamField>
+
+<ParamField body="status" type="string">
+  Account status. One of: `'active'` or `'inactive'`. Inactive accounts cannot log in. Stored in lowercase. Defaults to `'active'`.
+</ParamField>
+
+<ParamField body="lastLogin" type="string | null">
+  ISO 8601 timestamp of the most recent successful login. Updated automatically on each successful `authenticateUser()` call. `null` if the account has never been used to log in.
+</ParamField>
+
+<ParamField body="createdAt" type="string | null">
+  ISO 8601 timestamp of when the account was created. Set at creation time. `null` for accounts that were seeded without an explicit creation date.
+</ParamField>
+
+---
+
+## Session Object
+
+When a user successfully logs in, `AuthService.authenticateUser()` writes a session object to `localStorage` under the key `warehouseAuthSession`. This object is read by `guardPageAccess()` on every protected page load to confirm the user is authenticated and to determine their role.
+
+<ParamField body="userId" type="string">
+  The logged-in user's username.
+</ParamField>
+
+<ParamField body="role" type="string">
+  The logged-in user's role (`'admin'` or `'employee'`).
+</ParamField>
+
+<ParamField body="name" type="string">
+  The logged-in user's full name. Displayed in the topbar.
+</ParamField>
+
+<ParamField body="employeeId" type="string">
+  The logged-in user's employee ID.
+</ParamField>
+
+<ParamField body="position" type="string">
+  The logged-in user's job title. Displayed below the name in the topbar user profile area.
+</ParamField>
+
+The session is cleared from `localStorage` when the user clicks **Logout**, or if `localStorage` is cleared externally (which will force a redirect to the login page on the next protected page load).

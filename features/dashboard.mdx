@@ -1,0 +1,114 @@
+---
+title: "Dashboard: Live KPIs and Activity Report"
+sidebarTitle: "Dashboard"
+description: "The Amvel Warehouse Dashboard shows real-time shipment KPIs and a filterable activity report. Learn to read KPI cards, search records, and export data."
+---
+
+The Dashboard is the first screen you see after logging in to Amvel Warehouse. It gives you an instant, live overview of warehouse activity — three summary cards at the top reflect the current state of all stored shipments, while the Activity Report below lists every inbound and outbound transaction in a searchable, filterable table. All figures update automatically whenever a new shipment is saved anywhere in the system.
+
+## KPI Cards
+
+Three animated cards sit at the top of the page, each pulling its value directly from the stored shipment data.
+
+<CardGroup cols={3}>
+  <Card title="Total Shipments" icon="local_shipping">
+    The all-time count of unique shipment references (grouped by HAWB or MAWB) that have ever been recorded in the warehouse. Reflects every inbound and outbound entry combined.
+  </Card>
+  <Card title="Cargo in Warehouse" icon="warehouse">
+    The sum of remaining quantities across all active inventory records — that is, total quantity received minus total quantity released. Labelled **Current** beneath the count.
+  </Card>
+  <Card title="Outgoing Today" icon="box-arrow-up">
+    The number of distinct shipment records that have at least one outbound entry dated today. Labelled **Shipments** beneath the count.
+  </Card>
+</CardGroup>
+
+<Tip>
+  Clicking any KPI card instantly filters the Activity Report table below to show only the relevant set of shipments — all records for **Total Shipments**, records with remaining stock for **Cargo in Warehouse**, and today's outbound movements for **Outgoing Today**.
+</Tip>
+
+## Activity Report
+
+Beneath the KPI cards, the **Activity Report** table shows the full transaction log across all shipments. Each row corresponds to one aggregated shipment reference and displays:
+
+| Column   | Description                                                        |
+| -------- | ------------------------------------------------------------------ |
+| Month    | The month and year of the inbound date (e.g. `Jul 2026`)           |
+| Client   | The name of the cargo owner or consignee                           |
+| MAWB     | Master Air Waybill number                                          |
+| HAWB     | House Air Waybill number                                           |
+| Date In  | The date the cargo was received into the warehouse                 |
+| Qty In   | Total quantity received (number + unit, e.g. `12 CTN`)             |
+| Date Out | The date(s) the cargo was released; multiple outbound entries each show on their own line |
+| Qty Out  | Total quantity released per outbound event                         |
+
+## Search and QR Scan
+
+The search box above the Activity Report is identified as `activitySearchInput` in the page. Type any partial string to filter rows instantly by **HAWB**, **MAWB**, or **Client** name — results narrow in real time as you type.
+
+Next to the search box sits an inline **QR scan button** (📷 icon). Clicking it opens the camera modal so you can scan a QR code printed on a physical shipment label. A successful scan either:
+
+- **JSON payload** — fills all form fields on the Inbound & Outbound page.
+- **Plain text** — treats the scanned value as a HAWB or MAWB and jumps straight to the matching inventory record.
+
+## Filters Panel
+
+Click the **Filters** toggle button to expand the filter panel (`activityFilterPanel`). The available filters are:
+
+**Date Range** — A calendar-based picker with the following preset shortcuts:
+
+| Preset        | What it selects                                |
+| ------------- | ---------------------------------------------- |
+| Today         | The current calendar day                       |
+| Yesterday     | The previous calendar day                      |
+| Last 7 Days   | The past seven days including today            |
+| Last 30 Days  | The past thirty days including today           |
+| This Month    | The 1st to the last day of the current month   |
+| Last Month    | The full previous calendar month               |
+| Custom Range  | Opens an inline calendar to pick start and end dates manually |
+
+After selecting a preset or a custom range, click **Apply** to activate the filter, **Reset** to clear it, or **Cancel** to close the popover without changing anything.
+
+**Transaction Type** — A free-text field with autocomplete suggestions: `AFF Import`, `AFF Export`, `OFF Import`, `OFF Export`. Type any part of the type name to narrow to matching rows.
+
+**Warehouse Location** — A free-text field with autocomplete suggestions covering every rack position in the warehouse (e.g. `RACK A AA1A`). Type a rack letter or row code to filter by storage location.
+
+A **Clear filters** button at the bottom of the panel resets all three filters at once.
+
+## Page-Size Control
+
+Four buttons at the top of the toolbar control how many rows appear per page:
+
+| Button | Rows shown per page |
+| ------ | ------------------- |
+| 5      | 5 rows              |
+| 10     | 10 rows (default)   |
+| 20     | 20 rows             |
+| All    | Every row at once   |
+
+Pagination controls appear below the table whenever the total results exceed the selected page size.
+
+## Export Options
+
+Three export buttons sit in the toolbar to the right of the page-size control:
+
+| Button         | Action                                                                                     |
+| -------------- | ------------------------------------------------------------------------------------------ |
+| Export Excel   | Downloads the current (filtered) Activity Report as an `.xlsx` spreadsheet using SheetJS. |
+| Export PDF     | Downloads the current view as a PDF document using jsPDF and jspdf-autotable.             |
+| Print          | Opens the browser's print dialog with the table formatted for paper output.               |
+
+All three buttons respect the active search query and filters — only the rows currently visible in the table are included in the export or print.
+
+## Navigation Sidebar
+
+The collapsible sidebar on the left provides access to all main sections of the application:
+
+| Link                | Destination                                     |
+| ------------------- | ----------------------------------------------- |
+| **Dashboard**       | This page — KPI summary and Activity Report     |
+| **Inbound & Outbound** | Receive or release cargo via the entry forms |
+| **Inventory**       | Full warehouse stock list with search and filter |
+
+The sidebar can be collapsed by clicking the toggle button (☰) in the sidebar header. Its collapsed or expanded state is saved to `localStorage` so it persists across page navigations.
+
+**User Management** is visible only to users with the **Administrator** role. It appears inside the user profile dropdown (top-right corner of the topbar) rather than in the main sidebar nav. Non-admin users do not see this link at all.

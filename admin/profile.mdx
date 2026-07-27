@@ -1,0 +1,92 @@
+---
+title: "Manage Your Profile and Change Your Password"
+sidebarTitle: "Profile"
+description: "How to view your account details and change your password in Amvel Warehouse using the Profile page, accessible to all logged-in users."
+---
+
+Every logged-in user — regardless of role — can access their own profile page. Click your name in the top-right corner of any page to open the user dropdown menu, then select **Profile**. The profile page is split into two tabs: **Profile Information**, which displays a read-only summary of your account, and **Change Password**, which lets you update your login password at any time.
+
+---
+
+## Profile Information Tab
+
+The **Profile Information** tab shows the details stored against your account. All fields on this tab are read-only for the account holder.
+
+| Field | Description |
+|---|---|
+| **Employee ID** | Your unique employee identifier (e.g. `EMP-001`) |
+| **Full Name** | Your display name shown throughout the application |
+| **Username** | The `userId` you use to log in |
+| **Role** | Your assigned role: `admin` or `employee` |
+| **Position** | Your job position (e.g. `Warehouseman` or `Administrator`) |
+| **Status** | Whether your account is `active` or `inactive` |
+| **Last Login** | Timestamp of your most recent successful login |
+| **Date Created** | The date and time your account was first created |
+
+<Note>
+  Profile Information is read-only from this page. If any of your account details need to be corrected — such as your name or username — an admin must update them via **User Management**. Employees cannot edit other users' account data.
+</Note>
+
+---
+
+## Change Password Tab
+
+Use the **Change Password** tab to update your account password. You must know your current password to complete the process.
+
+<Steps>
+  <Step title="Open the Change Password tab">
+    On the Profile page, click the **Change Password** tab. The password form becomes visible.
+  </Step>
+  <Step title="Enter your current password">
+    Type your existing password into the **Current Password** field. This is required to verify your identity before the change is applied.
+  </Step>
+  <Step title="Enter your new password">
+    Type the password you want to switch to in the **New Password** field.
+  </Step>
+  <Step title="Confirm your new password">
+    Re-type the same new password in the **Confirm Password** field. Both entries must match exactly.
+  </Step>
+  <Step title="Submit the form">
+    Click **Update Password**. The system calls `AuthService.changePassword(currentPassword, newPassword, confirmPassword)` and returns a result object indicating success or failure.
+  </Step>
+</Steps>
+
+### Return Value
+
+`AuthService.changePassword()` always returns an object with the following shape:
+
+```js
+{ success: boolean, message: string }
+```
+
+Example responses:
+
+```js
+// Success
+{ success: true,  message: 'Password updated successfully.' }
+
+// Failure — wrong current password
+{ success: false, message: 'Incorrect current password.' }
+
+// Failure — new passwords do not match
+{ success: false, message: 'New passwords do not match.' }
+
+// Failure — one or more fields left empty
+{ success: false, message: 'Please complete all password fields.' }
+```
+
+### Validation Rules
+
+The following rules are enforced before the password is updated:
+
+- All three fields (**Current Password**, **New Password**, **Confirm Password**) are required. Leaving any field empty returns an error.
+- The value entered in **Current Password** must exactly match the password currently stored for your account.
+- The value entered in **New Password** and **Confirm Password** must be identical.
+
+<Tip>
+  After an admin resets your password to the default `Password123` via User Management, log in with that temporary password and then change it immediately on this page. Using the default password for any length of time is a security risk.
+</Tip>
+
+<Note>
+  Employees can only change their **own** password from this page. Changing another user's password requires an admin account — admins can reset any user's password to the default from the **User Management** page.
+</Note>
